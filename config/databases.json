@@ -1,0 +1,58 @@
+{
+    "databases": [
+        {
+            "name": "Access",
+            "default_port": 0,
+            "driver": "ucanaccess",
+            "jdbc_template": "jdbc:ucanaccess://{file}"
+        },
+        {
+            "name": "Firebird",
+            "default_port": 3050,
+            "driver": "firebird",
+            "jdbc_template": "jdbc:firebirdsql://{host}:{port}/{database}"
+        },
+        {
+            "name": "InterBase",
+            "default_port": 3050,
+            "driver": "interbase",
+            "jdbc_template": "jdbc:interbase://{host}:{port}/{database}"
+        },
+        {
+            "name": "MariaDB",
+            "default_port": 3306,
+            "driver": "mariadb",
+            "jdbc_template": "jdbc:mariadb://{host}:{port}/{database}"
+        },
+        {
+            "name": "MySQL",
+            "default_port": 3306,
+            "driver": "mysql",
+            "jdbc_template": "jdbc:mysql://{host}:{port}/{database}"
+        },
+        {
+            "name": "Oracle",
+            "default_port": 1521,
+            "driver": "oracle",
+            "jdbc_template": "jdbc:oracle:thin:@{host}:{port}:{database}"
+        },
+        {
+            "name": "PostgreSQL",
+            "default_port": 5432,
+            "driver": "pgsql",
+            "jdbc_template": "jdbc:postgresql://{host}:{port}/{database}"
+        },
+        {
+            "name": "SQL Server",
+            "default_port": 1433,
+            "driver": "mssql",
+            "jdbc_template": "jdbc:sqlserver://{host}:{port};databaseName={database}"
+        },
+        {
+            "name": "SQLite",
+            "default_port": 0,
+            "driver": "sqlite",
+            "jdbc_template": "jdbc:sqlite:{file}"
+        }
+    ]
+}

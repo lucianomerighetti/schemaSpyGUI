@@ -1,0 +1,10 @@
+-r requirement-base.txt
+
+pytest
+pytest-qt
+pytest-cov
+black
+ruff
+mypy
+pre-commit
+coverage

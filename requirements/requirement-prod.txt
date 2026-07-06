@@ -1,0 +1,3 @@
+-r requirement-dev.txt
+
+pyinstaller

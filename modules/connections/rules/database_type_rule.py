@@ -1,0 +1,1 @@
+# database_type_rule.py
