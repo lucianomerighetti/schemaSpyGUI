@@ -276,7 +276,8 @@ class Validator:
         if not result.valid:
             return result
 
-        return Validator.max_length(value, 100, "Nome da Conexão")
+        # BUG FIX Argumentos invertidos na chamada de max_length. Código antes da correção: return Validator.max_length(value, 100, "Nome da Conexão")
+        return Validator.max_length(value, "Nome da Conexão", 100)
 
     @staticmethod
     def project_name(value) -> ValidationResult:
@@ -285,4 +286,5 @@ class Validator:
         if not result.valid:
             return result
 
-        return Validator.max_length(value, 100, "Nome do Projeto")
+        # BUG FIX Argumentos invertidos na chamada de max_length. Código antes da correção: return Validator.max_length(value, 100, "Nome do Projeto")
+        return Validator.max_length(value, "Nome do Projeto", 100)

@@ -8,12 +8,13 @@ from modules.connections.connection_dto import ConnectionDTO
 from core.validation.validator import Validator
 from core.validation.validation_report import ValidationReport
 
-from modules.connections.validators.rules.name_rule import NameRule
-from modules.connections.validators.rules.database_type_rule import DatabaseTypeRule
-from modules.connections.validators.rules.host_rule import HostRule
-from modules.connections.validators.rules.port_rule import PortRule
-from modules.connections.validators.rules.database_rule import DatabaseRule
-from modules.connections.validators.rules.user_rule import UserRule
+# BUG FIX Caminhos incorretos de importação das regras. Código antes da correção: imports usavam modules.connections.validators.rules
+from modules.connections.rules.name_rule import NameRule
+from modules.connections.rules.database_type_rule import DatabaseTypeRule
+from modules.connections.rules.host_rule import HostRule
+from modules.connections.rules.port_rule import PortRule
+from modules.connections.rules.database_rule import DatabaseRule
+from modules.connections.rules.user_rule import UserRule
 
 
 class ConnectionValidator(Validator):

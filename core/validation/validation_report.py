@@ -19,7 +19,8 @@ class ValidationReport:
     def error(self, field: str, message: str, *, code: str = "") -> None:
         self.results.append(ValidationResult.error(field=field, message=message, code=code))
 
-    def warning(self, ield: str, message: str, *, code: str = "") -> None:
+    def warning(self, field: str, message: str, *, code: str = "") -> None:
+        # BUG FIX Parâmetro incorreto ield no método warning. Código antes da correção: def warning(self, ield: str, message: str, *, code: str = "") -> None:
         self.results.append(ValidationResult.warning(field=field, message=message, code=code))
 
     def info(self, message: str) -> None:

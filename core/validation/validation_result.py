@@ -3,7 +3,7 @@
 from __future__ import annotations
 from dataclasses import (
     dataclass,
-    field
+    field as dc_field
 )
 from typing import Any
 from unittest import result
@@ -18,7 +18,8 @@ class ValidationResult:
     severity: ValidationSeverity = ValidationSeverity.SUCCESS
     value:    Any = None
     code:     str = ""
-    details:  list[str] = field(default_factory=list)
+    # BUG FIX O atributo field da classe sombreava a funcao field do modulo dataclasses no escopo da classe, gerando TypeError. Codigo antes da correcao: details:  list[str] = field(default_factory=list)
+    details:  list[str] = dc_field(default_factory=list)
 
     # Métodos auxiliares
     @property

@@ -79,14 +79,21 @@ class MainWindow(QMainWindow):
                 
         # Projetos
         project_view = ProjectView()
-        project_repository = ProjectRepository(SessionLocal())
+        self.project_session = SessionLocal()
+        project_repository = ProjectRepository(self.project_session)
         project_service = ProjectService(project_repository)
         project_viewmodel = ProjectViewModel(project_service)
         self.project_controller = ProjectController(project_view, project_viewmodel)
         self.navigation.register_page("project", project_view)
         
         # Conexão
+        # BUG FIX Instanciação dos componentes MVC de Conexão. Código antes da correção: (apenas criava a view e registrava na navegação, sem repositório/serviço/viewmodel/controller)
         connection_view = ConnectionView()
+        self.connection_session = SessionLocal()
+        connection_repository = ConnectionRepository(self.connection_session)
+        connection_service = ConnectionService(connection_repository)
+        connection_viewmodel = ConnectionViewModel(connection_service)
+        self.connection_controller = ConnectionController(connection_view, connection_viewmodel)
         self.navigation.register_page("connection", connection_view)
         
         # Execução
@@ -105,7 +112,23 @@ class MainWindow(QMainWindow):
         about_view = AboutView()
         self.navigation.register_page("about", about_view)
 
-
         self.sidebar.navigate_requested.connect(self.navigation.navigate)
         
         self.navigation.navigate("dashboard")
+
+    def closeEvent(self, event):
+        """
+        Melhoria de arquitetura: Garante o fechamento limpo das sessões de banco ao fechar a janela,
+        evitando locks do SQLite e liberando recursos.
+        """
+        try:
+            if hasattr(self, 'project_session') and self.project_session:
+                self.project_session.close()
+        except Exception:
+            pass
+        try:
+            if hasattr(self, 'connection_session') and self.connection_session:
+                self.connection_session.close()
+        except Exception:
+            pass
+        super().closeEvent(event)

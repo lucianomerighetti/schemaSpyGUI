@@ -12,8 +12,7 @@ pip install --upgrade httpx
 pip install --upgrade loguru
 pip install --upgrade orjson
 pip install --upgrade typing-extensions
-pip install --upgrade orjon
-pip install --upgrade SQLite
+# BUG FIX Remoção de pacotes com erros de digitação ou desnecessários (orjon e SQLite). Código antes da correção: pip install --upgrade orjon e pip install --upgrade SQLite
 pip install --upgrade FastAPI
 pip install --upgrade oracledb
 pip install --upgrade psycopg
