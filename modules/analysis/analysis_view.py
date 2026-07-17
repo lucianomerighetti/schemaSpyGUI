@@ -2,7 +2,7 @@
 
 from shared.views.base_view import BaseView
 
-class ConnectionView(BaseView):
+class AnalysisView(BaseView):
 
     def __init__(self):
         super().__init__("Análise")

@@ -1,4 +1,4 @@
-# connection_validator.py
+# Artefato:  connection_validator.py
 
 
 from __future__ import annotations
@@ -15,6 +15,7 @@ from modules.connections.rules.host_rule import HostRule
 from modules.connections.rules.port_rule import PortRule
 from modules.connections.rules.database_rule import DatabaseRule
 from modules.connections.rules.user_rule import UserRule
+from modules.connections.rules.password_rule import PasswordRule
 
 
 class ConnectionValidator(Validator):
@@ -32,6 +33,7 @@ class ConnectionValidator(Validator):
             .add(PortRule())
             .add(DatabaseRule())
             .add(UserRule())
+            .add(PasswordRule())
         )
 
     # Execução

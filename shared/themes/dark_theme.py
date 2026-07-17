@@ -20,6 +20,10 @@ QPushButton {
     background-color: #2d2d30;
     border: none;
     padding: 8px;
+    text-align: center;
+}
+
+SideBar QPushButton {
     text-align: left;
 }
 

@@ -1,8 +1,4 @@
-# project_service.py
-
-from PyQt6.QtWidgets import (
-    QMessageBox
-)
+# Artefato:  project_service.py
 from shared.services.base_service import (
     BaseService
 )
@@ -10,6 +6,7 @@ from modules.projects import (
     Project,
     ProjectRepository
 )
+from .project_dto import ProjectDTO
 
 class ProjectService(BaseService):
     def __init__(self, repository):
@@ -23,43 +20,27 @@ class ProjectService(BaseService):
         self.validate_required(name, "Nome do Projeto")
         self.info(f"Criando projeto: {name}")
 
-    def create_project(
-        self,
-        nm_projeto,
-        tp_database,
-        nm_host,
-        nm_schema,
-        nu_porta=0
-    ):
-        
+    def create_project(self, dto: ProjectDTO):
         project = Project(
-            nm_projeto=nm_projeto,
-            tp_database=tp_database,
-            nm_host=nm_host,
-            nm_schema=nm_schema,
-            nu_porta=nu_porta
+            nm_projeto=dto.nm_projeto,
+            tp_database=dto.tp_database,
+            nm_host=dto.nm_host,
+            nm_schema=dto.nm_schema,
+            nu_porta=dto.nu_porta
         )
         return self.repository.create(project)
 
-    def update_project(
-        self,
-        id_projeto,
-        nm_projeto,
-        tp_database,
-        nm_host,
-        nm_schema,
-        nu_porta
-    ):
-        project = (self.repository.get_by_id(id_projeto))
+    def update_project(self, dto: ProjectDTO):
+        project = (self.repository.get_by_id(dto.id_projeto))
 
         if not project:
             raise Exception("Projeto não encontrado.")
 
-        project.nm_projeto = nm_projeto
-        project.tp_database = tp_database
-        project.nm_host = nm_host
-        project.nm_schema = nm_schema
-        project.nu_porta = nu_porta
+        project.nm_projeto = dto.nm_projeto
+        project.tp_database = dto.tp_database
+        project.nm_host = dto.nm_host
+        project.nm_schema = dto.nm_schema
+        project.nu_porta = dto.nu_porta
 
         self.repository.update()
         

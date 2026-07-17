@@ -1,5 +1,6 @@
-# connection.py
+# Artefato:  connection.py
 
+from typing import Optional
 from sqlalchemy import (
     Boolean,
     Integer,
@@ -31,46 +32,48 @@ class Connection(Base):
         nullable=False
     )
 
-    nm_host: Mapped[str] = mapped_column(
+    # BUG FIX: Alteração - Colunas marcadas como nullable=True para suportar diferentes tipos de banco (arquivo/servidor)
+    nm_host: Mapped[Optional[str]] = mapped_column(
         String(255),
-        nullable=False
+        nullable=True
     )
 
-    nu_porta: Mapped[int] = mapped_column(
-        Integer
+    nu_porta: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
     )
 
-    nm_database: Mapped[str] = mapped_column(
+    nm_database: Mapped[Optional[str]] = mapped_column(
         String(100),
         nullable=True
     )
 
-    nm_schema: Mapped[str] = mapped_column(
+    nm_schema: Mapped[Optional[str]] = mapped_column(
         String(100),
         nullable=True
     )
 
-    nm_usuario: Mapped[str] = mapped_column(
+    nm_usuario: Mapped[Optional[str]] = mapped_column(
         String(100),
-        nullable=False
+        nullable=True
     )
 
-    tx_password: Mapped[str] = mapped_column(
+    tx_password: Mapped[Optional[str]] = mapped_column(
         String(255),
-        nullable=False
+        nullable=True
     )
 
-    ds_caminho: Mapped[str] = mapped_column(
-        String(1000),
-        nullable=False
-    )
-
-    ds_jdbc_driver: Mapped[str] = mapped_column(
+    ds_caminho: Mapped[Optional[str]] = mapped_column(
         String(1000),
         nullable=True
     )
 
-    ds_jdbc_url: Mapped[str] = mapped_column(
+    ds_jdbc_driver: Mapped[Optional[str]] = mapped_column(
+        String(1000),
+        nullable=True
+    )
+
+    ds_jdbc_url: Mapped[Optional[str]] = mapped_column(
         String(2000),
         nullable=True
     )
@@ -82,10 +85,12 @@ class Connection(Base):
 
     @property
     def is_file_database(self) -> bool:
-        return self.tp_database in (
-            "Access",
-            "SQLite"
-        )
+        return self.tp_database.lower() in {
+            "sqlite",
+            "access",
+            "firebird_embedded",
+            "duckdb"
+        }
 
     @property
     def is_server_database(self) -> bool:

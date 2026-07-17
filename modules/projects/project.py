@@ -1,5 +1,6 @@
-# project.py
+# Artefato:  project.py
 
+from typing import Optional
 from sqlalchemy import (
     Integer,
     String
@@ -29,14 +30,17 @@ class Project(Base):
         String(50)
     )
 
-    nm_host: Mapped[str] = mapped_column(
-        String(255)
+    nm_host: Mapped[Optional[str]] = mapped_column(
+        String(255),
+        nullable=True
     )
 
-    nm_schema: Mapped[str] = mapped_column(
-        String(100)
+    nm_schema: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True
     )
     
-    nu_porta: Mapped[int] = mapped_column(
-        Integer
+    nu_porta: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        nullable=True
     )

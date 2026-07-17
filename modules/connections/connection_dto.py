@@ -1,4 +1,4 @@
-# connection_dto.py
+# Artefato:  connection_dto.py
 
 from __future__ import annotations
 from dataclasses import (

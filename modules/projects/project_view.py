@@ -1,4 +1,4 @@
-# project_view.py
+# Artefato:  project_view.py
 
 from PyQt6.QtWidgets import (
     QWidget,
@@ -28,6 +28,7 @@ from shared.views.base_view import (
 from shared.services.config_service import (
     ConfigService
 )
+from .project_dto import ProjectDTO
 
 class ProjectView(BaseView):
 
@@ -71,6 +72,12 @@ class ProjectView(BaseView):
         button_layout.addWidget(self.btn_delete)
         button_layout.addStretch()
 
+        # BUG FIX: Alteração - Todos os botões devem possuir o mesmo tamanho (tamanho do maior texto)
+        buttons = [self.btn_new, self.btn_save, self.btn_delete]
+        max_width = max(btn.fontMetrics().horizontalAdvance(btn.text()) + 40 for btn in buttons)
+        for btn in buttons:
+            btn.setFixedWidth(max_width)
+
         # Grid
         self.tbl_projects = QTableWidget()
         self.tbl_projects.setAlternatingRowColors(True)
@@ -80,17 +87,18 @@ class ProjectView(BaseView):
         self.tbl_projects.setHorizontalHeaderLabels(["ID", "Nome", "Banco", "Host", "Schema", "Porta"])
         
         header = self.tbl_projects.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+        # BUG FIX: Alteração - Definir colunas como interativas para permitir ajuste manual após o carregamento
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        header.setStretchLastSection(True)
+        header.setMinimumSectionSize(60)
         
         self.tbl_projects.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tbl_projects.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
         self.tbl_projects.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self.tbl_projects.itemSelectionChanged.connect(self._on_selection_changed)
+        
+        # BUG FIX: Implementação - Ativar ordenação ao clicar na coluna na grid de projetos
+        self.tbl_projects.setSortingEnabled(True)
         
         # Montagem da tela
         self.content_layout.addLayout(form_layout)
@@ -106,15 +114,25 @@ class ProjectView(BaseView):
         self.txt_porta.clear()
 
     def populate_grid(self, projects):
+        # BUG FIX: Alteração - Desabilitar temporariamente a ordenação ao popular a grid para evitar desalinhamento de linhas
+        self.tbl_projects.setSortingEnabled(False)
         self.tbl_projects.setRowCount(0)
         for row, project in enumerate(projects):
             self.tbl_projects.insertRow(row)
             self.tbl_projects.setItem(row, 0, QTableWidgetItem(str(project.id_projeto)))
             self.tbl_projects.setItem(row, 1, QTableWidgetItem(project.nm_projeto))
             self.tbl_projects.setItem(row, 2, QTableWidgetItem(project.tp_database))
-            self.tbl_projects.setItem(row, 3, QTableWidgetItem(project.nm_host))
-            self.tbl_projects.setItem(row, 4, QTableWidgetItem(project.nm_schema))
-            self.tbl_projects.setItem(row, 5, QTableWidgetItem(str(project.nu_porta)))
+            self.tbl_projects.setItem(row, 3, QTableWidgetItem(project.nm_host or ""))
+            self.tbl_projects.setItem(row, 4, QTableWidgetItem(project.nm_schema or ""))
+            self.tbl_projects.setItem(row, 5, QTableWidgetItem(str(project.nu_porta) if project.nu_porta is not None else ""))
+        
+        # Redimensiona para os conteúdos e adiciona margem
+        self.tbl_projects.resizeColumnsToContents()
+        for col in range(self.tbl_projects.columnCount()):
+            w = self.tbl_projects.columnWidth(col)
+            self.tbl_projects.setColumnWidth(col, w + 20)
+
+        self.tbl_projects.setSortingEnabled(True)
 
     def get_selected_id_projeto(self):
         row = self.tbl_projects.currentRow()
@@ -127,14 +145,30 @@ class ProjectView(BaseView):
             return None
 
         return int(item.text())
+
+    def get_project(self) -> ProjectDTO:
+        try:
+            porta_str = self.txt_porta.text().strip()
+            porta = int(porta_str) if porta_str else None
+        except ValueError:
+            porta = None
+
+        return ProjectDTO(
+            id_projeto=self.current_project_id,
+            nm_projeto=self.txt_projeto.text(),
+            tp_database=self.cbo_banco.currentText(),
+            nm_host=self.txt_host.text(),
+            nm_schema=self.txt_schema.text(),
+            nu_porta=porta
+        )
     
     def load_project(self, project):
         self.current_project_id = project.id_projeto
-        self.txt_projeto.setText(project.nm_projeto)
-        self.cbo_banco.setCurrentText(project.tp_database)
-        self.txt_host.setText(project.nm_host)
-        self.txt_schema.setText(project.nm_schema)
-        self.txt_porta.setText(str(project.nu_porta))
+        self.txt_projeto.setText(project.nm_projeto or "")
+        self.cbo_banco.setCurrentText(project.tp_database or "")
+        self.txt_host.setText(project.nm_host or "")
+        self.txt_schema.setText(project.nm_schema or "")
+        self.txt_porta.setText(str(project.nu_porta) if project.nu_porta is not None else "")
         
     def _on_selection_changed(self):
         row = self.tbl_projects.currentRow()
@@ -151,6 +185,12 @@ class ProjectView(BaseView):
         if not database:
             return
 
-        default_port = (database.get("default_port", 0))
+        default_port = database.get("default_port", 0)
         
         self.txt_porta.setText(str(default_port))
+
+        # Toggling dinâmico de campos baseados em arquivo vs servidor
+        is_file_db = database_name.lower() in ("sqlite", "access", "firebird_embedded", "duckdb")
+        self.txt_host.setEnabled(not is_file_db)
+        self.txt_schema.setEnabled(not is_file_db)
+        self.txt_porta.setEnabled(not is_file_db)

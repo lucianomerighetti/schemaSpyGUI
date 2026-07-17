@@ -10,25 +10,26 @@ from infrastructure.database.connection_result import (
 
 class ConnectionTester:
 
-    def test(self, connection):
-
-        db = connection.database_type.lower()
-
-        if db == "oracle":
-            return self._test_oracle(connection)
-
-        if db == "sql server":
-            return self._test_sqlserver(connection)
-
-        if db == "postgresql":
-            return self._test_postgresql(connection)
-
-        if db == "mysql":
-            return self._test_mysql(connection)
-
-        raise ValueError(
-            "Banco não suportado."
-        )
+    # BUG FIX: Depreciado - O método test de instância não é utilizado e continha erros de compatibilidade de atributos.
+    # def test(self, connection):
+    #
+    #     db = connection.database_type.lower()
+    #
+    #     if db == "oracle":
+    #         return self._test_oracle(connection)
+    #
+    #     if db == "sql server":
+    #         return self._test_sqlserver(connection)
+    #
+    #     if db == "postgresql":
+    #         return self._test_postgresql(connection)
+    #
+    #     if db == "mysql":
+    #         return self._test_mysql(connection)
+    #
+    #     raise ValueError(
+    #         "Banco não suportado."
+    #     )
 
     @staticmethod
     def test_connection( tp_database: str, nm_host: str, nu_porta: int, ds_caminho: str = "") -> ConnectionResult:

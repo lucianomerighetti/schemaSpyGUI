@@ -1,5 +1,4 @@
-# connection_view.py
-
+# Artefato:  connection_view.py
 from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -9,11 +8,7 @@ from PyQt6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QFormLayout,
-    QHBoxLayout,
-    QHeaderView
-)
-from PyQt6.QtCore import (
-    Qt
+    QHBoxLayout
 )
 from PyQt6.QtGui import (
     QIntValidator
@@ -27,6 +22,7 @@ from shared.views.base_view import (
 from shared.services.config_service import (
     ConfigService
 )
+from .connection_dto import ConnectionDTO
 
 class ConnectionView(BaseView):
 
@@ -85,42 +81,13 @@ class ConnectionView(BaseView):
         button_layout.addWidget(self.btn_test)
         button_layout.addStretch()
 
-        self.tbl_connections = (QTableWidget())
+        # BUG FIX: Alteração - Todos os botões devem possuir o mesmo tamanho (tamanho do maior texto)
+        self.adjust_button_sizes([self.btn_new, self.btn_save, self.btn_delete, self.btn_test])
+
+        self.tbl_connections = QTableWidget()
         self.current_connection_id = None
-        self.tbl_connections.setColumnCount(9)
-        self.tbl_connections.setHorizontalHeaderLabels(["ID", "Nome", "Banco", "Host", "Porta", "Database", "Schema", "Usuário", "Ativo"])
-
-        header = (self.tbl_connections.horizontalHeader())
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        for col in range(1, 7):
-            header.setSectionResizeMode(col,QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(8, QHeaderView.ResizeMode.ResizeToContents)
-        #header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        #header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        #header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
-        #header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        #header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        #header.setSectionResizeMode(5, QHeaderView.ResizeMode.Stretch)
-        #header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
-        #header.setSectionResizeMode(7, QHeaderView.ResizeMode.Stretch)
-        #header.setSectionResizeMode(8, QHeaderView.ResizeMode.ResizeToContents)            
-        #header.setStretchLastSection(False)
-        
-        self.tbl_connections.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tbl_connections.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.tbl_connections.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self.configure_table(self.tbl_connections, ["ID", "Nome", "Banco", "Host", "Porta", "Database", "Schema", "Usuário", "Ativo"])
         self.tbl_connections.itemSelectionChanged.connect(self._on_selection_changed)
-
-        for col in range(self.tbl_connections.columnCount()):
-            if col in (0, 3, 8):
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
-            else:
-                header.setSectionResizeMode(col, QHeaderView.ResizeMode.Interactive)
-
-        self.tbl_connections.setAlternatingRowColors(True)
-        self.tbl_connections.setSortingEnabled(True)
-        self.tbl_connections.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        self.tbl_connections.setVerticalScrollMode(QTableWidget.ScrollMode.ScrollPerPixel)        
         
         # Montagem da tela
         self.content_layout.addLayout(form_layout)
@@ -140,49 +107,133 @@ class ConnectionView(BaseView):
         self.txt_caminho.clear()
         self.txt_jdbc_driver.clear()
         self.txt_jdbc_url.clear()
-        #self.chk_ativo.setChecked(False)
+        # BUG FIX: Depreciado - Comportamento anterior que desmarcava o chk_ativo por padrão
+        # #self.chk_ativo.setChecked(False)
         self.chk_ativo.setChecked(True)
 
-    def populate_grid(self, connections):
+    def clear_grid(self):
         self.tbl_connections.setRowCount(0)
-        for row, connection in enumerate(connections):
-            self.tbl_connections.insertRow(row)
-            self.tbl_connections.setItem(row, 0, QTableWidgetItem(str(connection.id_conexao)))
-            self.tbl_connections.setItem(row, 1, QTableWidgetItem(connection.nm_conexao))
-            self.tbl_connections.setItem(row, 2, QTableWidgetItem(connection.tp_database))
-            self.tbl_connections.setItem(row, 3, QTableWidgetItem(connection.nm_host))
-            self.tbl_connections.setItem(row, 4, QTableWidgetItem(str(connection.nu_porta)))
-            self.tbl_connections.setItem(row, 5, QTableWidgetItem(connection.nm_database))
-            self.tbl_connections.setItem(row, 6, QTableWidgetItem(connection.nm_schema))
-            self.tbl_connections.setItem(row, 7, QTableWidgetItem(connection.nm_usuario))
-            self.tbl_connections.setItem(row, 8, QTableWidgetItem("Sim" if connection.fl_ativo else "Não"))
+
+    def clear_filter(self):
+        self.txt_filtro_grid.clear()
+
+    def clear_all(self):
+        self.clear_form()
+        self.clear_grid()
+        self.clear_filter()
+
+    def enable_form(self, enable: bool):
+        self.txt_conexao.setEnabled(enable)
+        self.cbo_banco.setEnabled(enable)
+        self.txt_host.setEnabled(enable)
+        self.txt_porta.setEnabled(enable)
+        self.txt_database.setEnabled(enable)
+        self.txt_schema.setEnabled(enable)
+        self.txt_usuario.setEnabled(enable)
+        self.txt_password.setEnabled(enable)
+        self.txt_caminho.setEnabled(enable)
+        self.txt_jdbc_driver.setEnabled(enable)
+        self.txt_jdbc_url.setEnabled(enable)
+        self.chk_ativo.setEnabled(enable)
 
     def get_selected_id_conexao(self):
         row = (self.tbl_connections.currentRow())
 
         if row < 0:
             return None
-
         item = (self.tbl_connections.item(row, 0))
 
         if item is None:
             return None
 
         return int(item.text())
+    
+    def get_connection(self) -> ConnectionDTO:
+        # BUG FIX: Alteração - Retornando objeto ConnectionDTO em vez de dicionário bruto
+        try:
+            porta_str = self.txt_porta.text().strip()
+            porta = int(porta_str) if porta_str else None
+        except ValueError:
+            porta = None
 
+        return ConnectionDTO(
+            id_conexao=self.current_connection_id,
+            nm_conexao=self.txt_conexao.text(),
+            tp_database=self.cbo_banco.currentText(),
+            nm_host=self.txt_host.text(),
+            nu_porta=porta,
+            nm_database=self.txt_database.text(),
+            nm_schema=self.txt_schema.text(),
+            nm_usuario=self.txt_usuario.text(),
+            tx_password=self.txt_password.text(),
+            ds_caminho=self.txt_caminho.text(),
+            ds_jdbc_driver=self.txt_jdbc_driver.text(),
+            ds_jdbc_url=self.txt_jdbc_url.text(),
+            fl_ativo=self.chk_ativo.isChecked()
+        )
+    
+    def get_filter_text(self):
+        return self.txt_filtro_grid.text().strip()
+    
+    def set_filter_text(self, text: str):
+        self.txt_filtro_grid.setText(text)
+
+    def set_databases(self, databases):
+        self.databases = databases
+        self.cbo_banco.clear()
+        self.cbo_banco.addItem("Selecione o Banco de Dados")
+        for database in databases:
+            self.cbo_banco.addItem(database["name"])
+    
+    def set_connection(self, dto: ConnectionDTO):
+        self.txt_conexao.setText(dto.nm_conexao or "")
+        self.cbo_banco.setCurrentText(dto.tp_database or "")
+        self.txt_host.setText(dto.nm_host or "")
+        self.txt_porta.setText(str(dto.nu_porta) if dto.nu_porta is not None else "")
+        self.txt_database.setText(dto.nm_database or "")
+        self.txt_schema.setText(dto.nm_schema or "")
+        self.txt_usuario.setText(dto.nm_usuario or "")
+        self.txt_password.setText(dto.tx_password or "")
+        self.txt_caminho.setText(dto.ds_caminho or "")
+        self.txt_jdbc_driver.setText(dto.ds_jdbc_driver or "")
+        self.txt_jdbc_url.setText(dto.ds_jdbc_url or "")
+        self.chk_ativo.setChecked(dto.fl_ativo)
+
+    def populate_grid(self, connections):
+        # BUG FIX: Alteração - Desabilitar temporariamente a ordenação ao popular a grid para evitar desalinhamento de linhas
+        self.tbl_connections.setSortingEnabled(False)
+        self.tbl_connections.setRowCount(0)
+        for row, connection in enumerate(connections):
+            self.tbl_connections.insertRow(row)
+            self.tbl_connections.setItem(row, 0, QTableWidgetItem(str(connection.id_conexao)))
+            self.tbl_connections.setItem(row, 1, QTableWidgetItem(connection.nm_conexao))
+            self.tbl_connections.setItem(row, 2, QTableWidgetItem(connection.tp_database))
+            self.tbl_connections.setItem(row, 3, QTableWidgetItem(connection.nm_host or ""))
+            self.tbl_connections.setItem(row, 4, QTableWidgetItem(str(connection.nu_porta) if connection.nu_porta is not None else ""))
+            self.tbl_connections.setItem(row, 5, QTableWidgetItem(connection.nm_database or ""))
+            self.tbl_connections.setItem(row, 6, QTableWidgetItem(connection.nm_schema or ""))
+            self.tbl_connections.setItem(row, 7, QTableWidgetItem(connection.nm_usuario or ""))
+            self.tbl_connections.setItem(row, 8, QTableWidgetItem("Sim" if connection.fl_ativo else "Não"))
+        
+        # Redimensiona para os conteúdos e adiciona margem
+        self.auto_fit_columns(self.tbl_connections)
+
+        self.tbl_connections.setSortingEnabled(True)
+    
+    
     def load_connection(self, connection):
-        self.current_connection_id = (connection.id_conexao)
-        self.txt_conexao.setText(connection.nm_conexao)
-        self.cbo_banco.setCurrentText(connection.tp_database)
-        self.txt_host.setText(connection.nm_host)
-        self.txt_porta.setText(str(connection.nu_porta))
-        self.txt_database.setText(connection.nm_database)
-        self.txt_schema.setText(connection.nm_schema)
-        self.txt_usuario.setText(connection.nm_usuario)
-        self.txt_password.setText(connection.tx_password)
-        self.txt_caminho.setText(connection.ds_caminho)
-        self.txt_jdbc_driver.setText(connection.ds_jdbc_driver)
-        self.txt_jdbc_url.setText(connection.ds_jdbc_url)
+        self.current_connection_id = connection.id_conexao
+        self.txt_conexao.setText(connection.nm_conexao or "")
+        self.cbo_banco.setCurrentText(connection.tp_database or "")
+        self.txt_host.setText(connection.nm_host or "")
+        self.txt_porta.setText(str(connection.nu_porta) if connection.nu_porta is not None else "")
+        self.txt_database.setText(connection.nm_database or "")
+        self.txt_schema.setText(connection.nm_schema or "")
+        self.txt_usuario.setText(connection.nm_usuario or "")
+        self.txt_password.setText(connection.tx_password or "")
+        self.txt_caminho.setText(connection.ds_caminho or "")
+        self.txt_jdbc_driver.setText(connection.ds_jdbc_driver or "")
+        self.txt_jdbc_url.setText(connection.ds_jdbc_url or "")
         self.chk_ativo.setChecked(connection.fl_ativo)
 
     def _on_selection_changed(self):
@@ -200,10 +251,21 @@ class ConnectionView(BaseView):
         if not database:
             return
 
-        default_port = (database.get("default_port", 0))
-        default_driver = (database.get("driver", 0))
-        default_url = (database.get("jdbc_template", 0))
+        default_port = database.get("default_port", 0)
+        default_driver = database.get("driver", "")
+        default_url = database.get("jdbc_template", "")
 
         self.txt_porta.setText(str(default_port))
         self.txt_jdbc_driver.setText(str(default_driver))
         self.txt_jdbc_url.setText(str(default_url))
+
+        # Toggling dinâmico de campos baseados em arquivo vs servidor
+        is_file_db = database_name.lower() in ("sqlite", "access", "firebird_embedded", "duckdb")
+        self.txt_caminho.setEnabled(is_file_db)
+        self.txt_host.setEnabled(not is_file_db)
+        self.txt_porta.setEnabled(not is_file_db)
+        self.txt_database.setEnabled(not is_file_db)
+        self.txt_schema.setEnabled(not is_file_db)
+        self.txt_usuario.setEnabled(not is_file_db)
+        self.txt_password.setEnabled(not is_file_db)
+    

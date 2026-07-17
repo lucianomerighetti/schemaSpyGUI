@@ -1,6 +1,7 @@
-# project_viewmodel.py
+# Artefato:  project_viewmodel.py
 
 from shared.viewmodels.base_viewmodel import BaseViewModel
+from .project_dto import ProjectDTO
 
 class ProjectViewModel(BaseViewModel):
 
@@ -11,42 +12,14 @@ class ProjectViewModel(BaseViewModel):
     def get_project_by_id(self, id_projeto):
         return self.service.get_project_by_id(id_projeto)
     
-    def create_project(
-        self,
-        nm_projeto,
-        tp_database,
-        nm_host,
-        nm_schema,
-        nu_porta
-    ):
-        return self.service.create_project(
-            nm_projeto,
-            tp_database,
-            nm_host,
-            nm_schema,
-            nu_porta
-        )
+    def create_project(self, dto: ProjectDTO):
+        return self.service.create_project(dto)
 
     def read_project(self):
         return self.service.get_project()
 
-    def update_project(
-        self,
-        id_projeto,
-        nm_projeto,
-        tp_database,
-        nm_host,
-        nm_schema,
-        nu_porta
-    ):
-        return self.service.update_project(
-            id_projeto,
-            nm_projeto,
-            tp_database,
-            nm_host,
-            nm_schema,
-            nu_porta
-        )
+    def update_project(self, dto: ProjectDTO):
+        return self.service.update_project(dto)
     
     def delete_project(self, id_projeto: int):
         return self.service.delete_project(id_projeto)

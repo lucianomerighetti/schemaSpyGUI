@@ -1,0 +1,11 @@
+# Artefato:  host_rule.py
+from core.validation.validation_rule import ValidationRule
+from core.validation.validation_report import ValidationReport
+from typing import Any
+
+class HostRule(ValidationRule):
+    def validate(self, dto: Any, report: ValidationReport) -> None:
+        is_file_db = hasattr(dto, 'is_file_database') and dto.is_file_database
+        if not is_file_db:
+            if not hasattr(dto, 'nm_host') or not dto.nm_host or not dto.nm_host.strip():
+                report.error("nm_host", "Host é obrigatório para bancos cliente/servidor.")

@@ -1,8 +1,5 @@
 # connection_service.py
 
-from PyQt6.QtWidgets import (
-    QMessageBox
-)
 from shared.services.base_service import (
     BaseService
 )
@@ -10,6 +7,7 @@ from modules.connections import (
     Connection,
     ConnectionRepository
 )
+from modules.connections.connection_dto import ConnectionDTO
 
 class ConnectionService(BaseService):
 
@@ -24,70 +22,41 @@ class ConnectionService(BaseService):
         self.validate_required(name, "Nome da Conexão")
         self.info(f"Criando conexão: {name}")
 
-    def create_connection(
-        self,
-        nm_conexao,
-        tp_database,
-        nm_host,
-        nu_porta,
-        nm_database,
-        nm_schema,
-        nm_usuario,
-        tx_password,
-        ds_caminho="",
-        ds_jdbc_driver="",
-        ds_jdbc_url="",
-        fl_ativo=True
-    ):
+    def create_connection(self, dto: ConnectionDTO):
         connection = Connection(
-            nm_conexao=nm_conexao,
-            tp_database=tp_database,
-            nm_host=nm_host,
-            nu_porta=nu_porta,
-            nm_database=nm_database,
-            nm_schema=nm_schema,
-            nm_usuario=nm_usuario,
-            tx_password=tx_password,
-            ds_caminho=ds_caminho,
-            ds_jdbc_driver=ds_jdbc_driver,
-            ds_jdbc_url=ds_jdbc_url,
-            fl_ativo=fl_ativo
+            nm_conexao=dto.nm_conexao,
+            tp_database=dto.tp_database,
+            nm_host=dto.nm_host,
+            nu_porta=dto.nu_porta,
+            nm_database=dto.nm_database,
+            nm_schema=dto.nm_schema,
+            nm_usuario=dto.nm_usuario,
+            tx_password=dto.tx_password,
+            ds_caminho=dto.ds_caminho,
+            ds_jdbc_driver=dto.ds_jdbc_driver,
+            ds_jdbc_url=dto.ds_jdbc_url,
+            fl_ativo=dto.fl_ativo
         )
         return self.repository.create(connection)
 
-    def update_connection(
-        self,
-        id_conexao,
-        nm_conexao,
-        tp_database,
-        nm_host,
-        nu_porta,
-        nm_database,
-        nm_schema,
-        nm_usuario,
-        tx_password,
-        ds_caminho="",
-        ds_jdbc_driver="",
-        ds_jdbc_url="",
-        fl_ativo=True
-    ):
-        connection = (self.repository.get_by_id(id_conexao))
+    def update_connection(self, dto: ConnectionDTO):
+        connection = self.repository.get_by_id(dto.id_conexao)
 
         if not connection:
             raise Exception("Conexão não encontrada.")
 
-        connection.nm_conexao = nm_conexao
-        connection.tp_database = tp_database
-        connection.nm_host = nm_host
-        connection.nu_porta = nu_porta
-        connection.nm_database = nm_database
-        connection.nm_schema = nm_schema
-        connection.nm_usuario = nm_usuario
-        connection.tx_password = tx_password
-        connection.ds_caminho = ds_caminho
-        connection.ds_jdbc_driver = ds_jdbc_driver
-        connection.ds_jdbc_url = ds_jdbc_url
-        connection.fl_ativo = fl_ativo
+        connection.nm_conexao = dto.nm_conexao
+        connection.tp_database = dto.tp_database
+        connection.nm_host = dto.nm_host
+        connection.nu_porta = dto.nu_porta
+        connection.nm_database = dto.nm_database
+        connection.nm_schema = dto.nm_schema
+        connection.nm_usuario = dto.nm_usuario
+        connection.tx_password = dto.tx_password
+        connection.ds_caminho = dto.ds_caminho
+        connection.ds_jdbc_driver = dto.ds_jdbc_driver
+        connection.ds_jdbc_url = dto.ds_jdbc_url
+        connection.fl_ativo = dto.fl_ativo
 
         self.repository.update()
 
