@@ -74,3 +74,17 @@ class ConnectionService(BaseService):
 
     def get_connection_by_id(self, id_conexao):
         return self.repository.get_by_id(id_conexao)
+
+    # BUG FIX: Implementação - Expor verificação de duplicidade de conexão
+    def check_duplicate(self, nm_conexao, tp_database, nm_host, nu_porta, nm_database, nm_schema, nm_usuario, tx_password, ds_caminho) -> bool:
+        return self.repository.check_duplicate(
+            nm_conexao=nm_conexao,
+            tp_database=tp_database,
+            nm_host=nm_host,
+            nu_porta=nu_porta,
+            nm_database=nm_database,
+            nm_schema=nm_schema,
+            nm_usuario=nm_usuario,
+            tx_password=tx_password,
+            ds_caminho=ds_caminho
+        )

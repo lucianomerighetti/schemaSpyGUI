@@ -6,12 +6,15 @@ from .project_viewmodel import ProjectViewModel
 from .project_dto import ProjectDTO
 from .import_dialog import ImportProjectsDialog
 from .project_validator import ProjectValidator
+from modules.connections.connection_dto import ConnectionDTO
+from shared.services.config_service import ConfigService
 
 class ProjectController:
 
-    def __init__(self, view, viewmodel: ProjectViewModel):
+    def __init__(self, view, viewmodel: ProjectViewModel, connection_service=None):
         self.view = view
         self.viewmodel = viewmodel
+        self.connection_service = connection_service
         self._connect_signals()
         self.read_project()
 
@@ -107,8 +110,17 @@ class ProjectController:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
+            # BUG FIX: Implementação - Desaninhar coleções do JSON se for dicionário de primeiro nível
             if isinstance(data, dict):
-                data = [data]
+                extracted_list = None
+                for key, val in data.items():
+                    if isinstance(val, list):
+                        extracted_list = val
+                        break
+                if extracted_list is not None:
+                    data = extracted_list
+                else:
+                    data = [data]
 
             if not isinstance(data, list):
                 self.view.show_error_message("Erro de Formato", "O arquivo JSON deve conter um projeto ou uma lista de projetos.")
@@ -118,20 +130,97 @@ class ProjectController:
             if dialog.exec() == ImportProjectsDialog.DialogCode.Accepted:
                 imported_items = dialog.get_imported_projects()
                 
+                # Carregar databases do ConfigService
+                databases = ConfigService.load_databases()
+                
                 success_count = 0
-                for item in imported_items:
-                    dto = ProjectDTO(
-                        nm_projeto=item["nm_projeto"],
-                        tp_database=item["tp_database"],
-                        nm_database=item["nm_database"],
-                        nm_host=item["nm_host"],
-                        nm_schema=item["nm_schema"],
-                        nu_porta=item["nu_porta"]
+                duplicate_count = 0
+                for proj_data, raw_item in imported_items:
+                    # 1. Extrair os dados mapeados e finais do projeto/conexão
+                    nm_projeto = proj_data["nm_projeto"]
+                    tp_database = proj_data["tp_database"]
+                    nm_host = proj_data["nm_host"]
+                    nu_porta = proj_data["nu_porta"]
+                    nm_database = proj_data["nm_database"]
+                    nm_schema = proj_data["nm_schema"]
+                    nm_usuario = proj_data["nm_usuario"]
+                    tx_password = proj_data["tx_password"]
+                    ds_caminho = proj_data["ds_caminho"]
+                    ds_jdbc_driver = proj_data["ds_jdbc_driver"]
+                    ds_jdbc_url = proj_data["ds_jdbc_url"]
+                    
+                    nm_conexao = nm_projeto # O nome da conexão segue o do projeto
+                    
+                    # 2. Verificar duplicidade de conexões na base de dados
+                    if self.connection_service:
+                        is_duplicate = self.connection_service.check_duplicate(
+                            nm_conexao=nm_conexao,
+                            tp_database=tp_database,
+                            nm_host=nm_host,
+                            nu_porta=nu_porta,
+                            nm_database=nm_database,
+                            nm_schema=nm_schema,
+                            nm_usuario=nm_usuario,
+                            tx_password=tx_password,
+                            ds_caminho=ds_caminho
+                        )
+                        if is_duplicate:
+                            duplicate_count += 1
+                            continue # Ignora conexões duplicadas
+                    
+                    # 3. Criar o Projeto no módulo Projeto
+                    dto_projeto = ProjectDTO(
+                        nm_projeto=nm_projeto,
+                        tp_database=tp_database,
+                        nm_database=nm_database,
+                        nm_host=nm_host,
+                        nm_schema=nm_schema,
+                        nu_porta=nu_porta
                     )
-                    self.viewmodel.create_project(dto)
+                    project_entity = self.viewmodel.create_project(dto_projeto)
+                    id_projeto = project_entity.id_projeto
+                    
+                    # 4. Gerar Driver e URL JDBC se não vierem diretamente mapeados/preenchidos
+                    if not ds_jdbc_url or not ds_jdbc_driver:
+                        db_config = next((db for db in databases if db["name"] == tp_database), None)
+                        if db_config:
+                            if not ds_jdbc_driver:
+                                ds_jdbc_driver = db_config.get("driver_class", "")
+                            if not ds_jdbc_url:
+                                url_template = db_config.get("url_template", "")
+                                host = nm_host or ""
+                                port = str(nu_porta) if nu_porta is not None else ""
+                                db_name = nm_database or ""
+                                schema_name = nm_schema or ""
+                                user_name = nm_usuario or ""
+                                pass_val = tx_password or ""
+                                ds_jdbc_url = url_template.replace("<host>", host).replace("<port>", port).replace("<database>", db_name).replace("<schema>", schema_name).replace("<user>", user_name).replace("<password>", pass_val).replace("<caminho>", ds_caminho)
+
+                    # 5. Criar a Conexão associada ao Projeto
+                    if self.connection_service:
+                        dto_conexao = ConnectionDTO(
+                            id_projeto=id_projeto,
+                            nm_conexao=nm_conexao,
+                            tp_database=tp_database,
+                            nm_host=nm_host,
+                            nu_porta=nu_porta,
+                            nm_database=nm_database,
+                            nm_schema=nm_schema,
+                            nm_usuario=nm_usuario,
+                            tx_password=tx_password,
+                            ds_caminho=ds_caminho,
+                            ds_jdbc_driver=ds_jdbc_driver,
+                            ds_jdbc_url=ds_jdbc_url,
+                            fl_ativo=True
+                        )
+                        self.connection_service.create_connection(dto_conexao)
+                    
                     success_count += 1
                 
-                self.view.show_message("Sucesso", f"{success_count} projeto(s) importado(s) com sucesso.")
+                msg = f"{success_count} projeto(s) e conexão(ões) importados com sucesso."
+                if duplicate_count > 0:
+                    msg += f"\n({duplicate_count} conexão(ões) duplicada(s) ignorada(s))."
+                self.view.show_message("Importação Concluída", msg)
                 self.read_project()
                 self.view.clear_form()
 

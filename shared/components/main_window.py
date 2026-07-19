@@ -77,21 +77,22 @@ class MainWindow(QMainWindow):
         dashboard_view = DashboardView()
         self.navigation.register_page("dashboard", dashboard_view)
                 
+        # Conexão (Instanciar serviço mais cedo para o ProjectController)
+        self.connection_session = SessionLocal()
+        connection_repository = ConnectionRepository(self.connection_session)
+        connection_service = ConnectionService(connection_repository)
+
         # Projetos
         project_view = ProjectView()
         self.project_session = SessionLocal()
         project_repository = ProjectRepository(self.project_session)
         project_service = ProjectService(project_repository)
         project_viewmodel = ProjectViewModel(project_service)
-        self.project_controller = ProjectController(project_view, project_viewmodel)
+        self.project_controller = ProjectController(project_view, project_viewmodel, connection_service=connection_service)
         self.navigation.register_page("project", project_view)
         
-        # Conexão
-        # BUG FIX: Alteração - Instanciação dos componentes MVC de Conexão repassando o project_service para o controller
+        # Conexão (View, ViewModel e Controller)
         connection_view = ConnectionView()
-        self.connection_session = SessionLocal()
-        connection_repository = ConnectionRepository(self.connection_session)
-        connection_service = ConnectionService(connection_repository)
         connection_viewmodel = ConnectionViewModel(connection_service)
         self.connection_controller = ConnectionController(connection_view, connection_viewmodel, project_service=project_service)
         self.navigation.register_page("connection", connection_view)

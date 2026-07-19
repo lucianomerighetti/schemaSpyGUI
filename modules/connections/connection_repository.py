@@ -81,3 +81,23 @@ class ConnectionRepository:
             .order_by(Connection.nm_conexao)
             .all()
         )
+
+    # BUG FIX: Implementação - Verificar se existe conexão duplicada baseada em todos os campos da UniqueConstraint
+    def check_duplicate(self, nm_conexao, tp_database, nm_host, nu_porta, nm_database, nm_schema, nm_usuario, tx_password, ds_caminho) -> bool:
+        return (
+            self.session
+            .query(Connection)
+            .filter(
+                Connection.nm_conexao == nm_conexao,
+                Connection.tp_database == tp_database,
+                Connection.nm_host == nm_host,
+                Connection.nu_porta == nu_porta,
+                Connection.nm_database == nm_database,
+                Connection.nm_schema == nm_schema,
+                Connection.nm_usuario == nm_usuario,
+                Connection.tx_password == tx_password,
+                Connection.ds_caminho == ds_caminho
+            )
+            .first()
+            is not None
+        )

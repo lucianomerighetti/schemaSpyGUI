@@ -1,5 +1,12 @@
+# Arquivos de controle de versão
+.gitignore
+
 # Ignorar diretórios de cache do Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Configurações do banco de dados
+data/
+data/connections/
