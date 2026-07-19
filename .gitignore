@@ -4,7 +4,6 @@
 # Ignorar diretórios de cache do Python
 __pycache__/
 *.pyc
-*.pyo
 *.pyd
 
 # Configurações do banco de dados
