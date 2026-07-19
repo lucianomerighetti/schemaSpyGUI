@@ -15,7 +15,9 @@ from modules.connections import (
     Connection
 )
 from modules.settings import (
-    Setting
+    Setting,
+    Parameter,
+    PropertyFile
 )
 from PyQt6.QtGui import QIcon
 from infrastructure.database.database import DB_PATH
@@ -68,6 +70,60 @@ def run_migrations():
 
 run_migrations()
 Base.metadata.create_all(bind=engine)
+
+def seed_parameters():
+    from infrastructure.database.session import SessionLocal
+    from modules.settings.support import Parameter
+    
+    session = SessionLocal()
+    try:
+        if session.query(Parameter).count() > 0:
+            return
+            
+        parameters = [
+            ("-t", "Database type (e.g. pgsql, mysql, ora, etc.)"),
+            ("-dp", "Path to the JDBC driver jar"),
+            ("-db", "Name of the database"),
+            ("-host", "Host name or IP address of the database server"),
+            ("-port", "Port number of the database server"),
+            ("-s", "Schema name to explore"),
+            ("-u", "Database username"),
+            ("-p", "Database password"),
+            ("-o", "Output directory"),
+            ("-meta", "Path to XML metadata file"),
+            ("-desc", "Description to be displayed on summary page"),
+            ("-i", "Regular expression of table names to include"),
+            ("-I", "Regular expression of table names to exclude"),
+            ("-x", "Regular expression of column names to exclude"),
+            ("-charset", "Character set used for HTML output"),
+            ("-font", "Font name for generated HTML"),
+            ("-fontsize", "Font size for generated HTML"),
+            ("-css", "Path to custom CSS file"),
+            ("-vizjs", "Use embedded Viz.js instead of Graphviz"),
+            ("-degree", "Limits degree of separation in diagrams (1 or 2)"),
+            ("-noRows", "Don't query or display row counts"),
+            ("-rails", "Specifies if it is a Ruby on Rails database"),
+            ("-aHTML", "Allow HTML in comments"),
+            ("-noHTML", "Don't generate HTML documentation"),
+            ("-noLogo", "Don't include the SchemaSpy logo"),
+            ("-noAds", "Don't display sponsor ads"),
+            ("-dincFK", "Don't query foreign keys"),
+            ("-sso", "Single Sign-On")
+        ]
+        
+        for name, desc in parameters:
+            param = Parameter(nm_parametro=name, ds_parametro=desc)
+            session.add(param)
+            
+        session.commit()
+        print("Migração: Tabela de apoio ta_parametro populada com sucesso.")
+    except Exception as e:
+        session.rollback()
+        print(f"Erro ao popular parâmetros: {e}")
+    finally:
+        session.close()
+
+seed_parameters()
 
 def main():
     app = QApplication(sys.argv)
