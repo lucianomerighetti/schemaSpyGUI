@@ -21,9 +21,11 @@ class ProjectService(BaseService):
         self.info(f"Criando projeto: {name}")
 
     def create_project(self, dto: ProjectDTO):
+        # BUG FIX: Implementação - Associando o campo nm_database ao criar projeto
         project = Project(
             nm_projeto=dto.nm_projeto,
             tp_database=dto.tp_database,
+            nm_database=dto.nm_database,
             nm_host=dto.nm_host,
             nm_schema=dto.nm_schema,
             nu_porta=dto.nu_porta
@@ -36,8 +38,10 @@ class ProjectService(BaseService):
         if not project:
             raise Exception("Projeto não encontrado.")
 
+        # BUG FIX: Implementação - Atualizando nm_database no projeto
         project.nm_projeto = dto.nm_projeto
         project.tp_database = dto.tp_database
+        project.nm_database = dto.nm_database
         project.nm_host = dto.nm_host
         project.nm_schema = dto.nm_schema
         project.nu_porta = dto.nu_porta

@@ -4,7 +4,9 @@ from typing import Optional
 from sqlalchemy import (
     Boolean,
     Integer,
-    String
+    String,
+    ForeignKey,
+    UniqueConstraint
 )
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
@@ -17,9 +19,25 @@ class Connection(Base):
 
     __tablename__ = "tb_conexao"
 
+    # BUG FIX: Implementação - Restrição UNIQUE composta unindo todos os campos essenciais da conexão
+    __table_args__ = (
+        UniqueConstraint(
+            "nm_conexao", "tp_database", "nm_host", "nu_porta",
+            "nm_database", "nm_schema", "nm_usuario", "tx_password", "ds_caminho",
+            name="uq_tb_conexao_campos"
+        ),
+    )
+
     id_conexao: Mapped[int] = mapped_column(
         primary_key=True,
         autoincrement=True
+    )
+
+    # BUG FIX: Implementação - Relacionamento entre tb_conexao e tb_projeto (1:N)
+    id_projeto: Mapped[Optional[int]] = mapped_column(
+        Integer,
+        ForeignKey("tb_projeto.id_projeto"),
+        nullable=True
     )
 
     nm_conexao: Mapped[str] = mapped_column(

@@ -4,11 +4,14 @@ from modules.projects.project_dto import ProjectDTO
 from core.validation.validator import Validator
 from core.validation.validation_report import ValidationReport
 
-from modules.projects.rules.name_rule import NameRule
-from modules.projects.rules.database_type_rule import DatabaseTypeRule
-from modules.projects.rules.host_rule import HostRule
-from modules.projects.rules.schema_rule import SchemaRule
-from modules.projects.rules.port_rule import PortRule
+# BUG FIX: Alteração - Imports unificados usando a estrutura do __init__.py do pacote rules
+from modules.projects.rules import (
+    NameRule,
+    DatabaseTypeRule,
+    HostRule,
+    SchemaRule,
+    PortRule
+)
 
 class ProjectValidator(Validator):
     def __init__(self) -> None:

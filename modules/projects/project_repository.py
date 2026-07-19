@@ -37,3 +37,36 @@ class ProjectRepository:
     def delete(self, project: Project):
         self.session.delete(project)
         self.session.commit()
+
+    # BUG FIX: Implementação - Métodos do repositório para paridade com ConnectionRepository
+    def get_active(self):
+        # Como tb_projeto não tem campo fl_ativo, todos os projetos são considerados ativos
+        return self.get_all()
+
+    def get_by_name(self, nm_projeto: str):
+        return (
+            self.session
+            .query(Project)
+            .filter(Project.nm_projeto == nm_projeto)
+            .first()
+        )
+
+    def exists_by_name(self, nm_projeto: str) -> bool:
+        return self.get_by_name(nm_projeto) is not None
+
+    def count(self) -> int:
+        return (
+            self.session
+            .query(Project)
+            .count()
+        )
+
+    def search(self, text: str):
+        return (
+            self.session
+            .query(Project)
+            .filter(Project.nm_projeto.ilike(f"%{text}%"))
+            .order_by(Project.nm_projeto)
+            .all()
+        )
+

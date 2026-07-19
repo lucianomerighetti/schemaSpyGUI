@@ -14,9 +14,10 @@ from shared.validators import Validator
 
 class ConnectionController:
 
-    def __init__(self, view, viewmodel: ConnectionViewModel):
+    def __init__(self, view, viewmodel: ConnectionViewModel, project_service=None):
         self.view = view
         self.viewmodel = viewmodel
+        self.project_service = project_service
         self._connect_signals()
         self.read_connection()
 
@@ -46,6 +47,8 @@ class ConnectionController:
 
     def read_connection(self):
         try:
+            # BUG FIX: Implementação - Carregar projetos associados no combobox
+            self.load_projects()
             connections = (self.viewmodel.read_connection())
             self.view.populate_grid(connections)
         except Exception as ex:
@@ -111,3 +114,13 @@ class ConnectionController:
             self.view.show_message("Teste Conexão", result.message)
         else:
             self.view.show_error_message("Teste Conexão", result.message)
+
+    # BUG FIX: Implementação - Método para carregar a lista de projetos e repassar para a view
+    def load_projects(self):
+        if not self.project_service:
+            return
+        try:
+            projects = self.project_service.get_project()
+            self.view.populate_projects_combo(projects)
+        except Exception as ex:
+            self.view.show_error_message("Connection Controller - Load Projects", str(ex))

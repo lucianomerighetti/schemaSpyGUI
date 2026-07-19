@@ -1,1 +1,7 @@
 # __init__.py
+# BUG FIX: Implementação - Exposição das regras de validação para facilitar imports do pacote
+from .name_rule import NameRule
+from .database_type_rule import DatabaseTypeRule
+from .host_rule import HostRule
+from .port_rule import PortRule
+from .schema_rule import SchemaRule

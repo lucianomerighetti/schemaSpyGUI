@@ -14,6 +14,8 @@ class ConnectionDTO:
 
     # Identificação
     id_conexao: Optional[int] = None
+    # BUG FIX: Implementação - Adicionando id_projeto para relacionamento no DTO
+    id_projeto: Optional[int] = None
     nm_conexao: str = ""
     ds_conexao: str = ""
     # Banco

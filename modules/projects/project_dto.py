@@ -11,6 +11,8 @@ class ProjectDTO:
     id_projeto: Optional[int] = None
     nm_projeto: str = ""
     tp_database: str = ""
+    # BUG FIX: Implementação - Adicionando propriedade nm_database no DTO do projeto
+    nm_database: str = ""
     nm_host: str = ""
     nm_schema: str = ""
     nu_porta: Optional[int] = None

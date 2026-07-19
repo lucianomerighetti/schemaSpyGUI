@@ -47,6 +47,7 @@ class ProjectView(BaseView):
         self.cbo_banco = QComboBox()
         self.cbo_banco.addItems([db["name"]for db in self.databases])
         self.txt_host = QLineEdit()
+        self.txt_database = QLineEdit()
         self.txt_schema = QLineEdit()
         self.txt_porta = QLineEdit()
         self.txt_porta.setValidator(QIntValidator(1, 65535))
@@ -54,9 +55,11 @@ class ProjectView(BaseView):
         self.cbo_banco.currentTextChanged.connect(self._on_database_changed)        
         self._on_database_changed(self.cbo_banco.currentText())
 
+        # BUG FIX: Alteração - Formulário de projeto agora comporta o campo Database
         form_layout.addRow(QLabel("Nome Projeto"), self.txt_projeto)
         form_layout.addRow(QLabel("Banco"), self.cbo_banco)
         form_layout.addRow(QLabel("Host"), self.txt_host)
+        form_layout.addRow(QLabel("Database"), self.txt_database)
         form_layout.addRow(QLabel("Schema"), self.txt_schema)
         form_layout.addRow(QLabel("Porta"), self.txt_porta)
 
@@ -72,33 +75,15 @@ class ProjectView(BaseView):
         button_layout.addWidget(self.btn_delete)
         button_layout.addStretch()
 
-        # BUG FIX: Alteração - Todos os botões devem possuir o mesmo tamanho (tamanho do maior texto)
-        buttons = [self.btn_new, self.btn_save, self.btn_delete]
-        max_width = max(btn.fontMetrics().horizontalAdvance(btn.text()) + 40 for btn in buttons)
-        for btn in buttons:
-            btn.setFixedWidth(max_width)
+        # BUG FIX: Alteração - Todos os botões devem possuir o mesmo tamanho (utilizando a classe base BaseView)
+        self.adjust_button_sizes([self.btn_new, self.btn_save, self.btn_delete])
 
         # Grid
         self.tbl_projects = QTableWidget()
-        self.tbl_projects.setAlternatingRowColors(True)
-        self.tbl_projects.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         self.current_project_id = None
-        self.tbl_projects.setColumnCount(6)
-        self.tbl_projects.setHorizontalHeaderLabels(["ID", "Nome", "Banco", "Host", "Schema", "Porta"])
-        
-        header = self.tbl_projects.horizontalHeader()
-        # BUG FIX: Alteração - Definir colunas como interativas para permitir ajuste manual após o carregamento
-        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-        header.setStretchLastSection(True)
-        header.setMinimumSectionSize(60)
-        
-        self.tbl_projects.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.tbl_projects.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-        self.tbl_projects.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        # BUG FIX: Alteração - Coluna Database inserida na Grid de projetos
+        self.configure_table(self.tbl_projects, ["ID", "Nome", "Banco", "Host", "Database", "Schema", "Porta"])
         self.tbl_projects.itemSelectionChanged.connect(self._on_selection_changed)
-        
-        # BUG FIX: Implementação - Ativar ordenação ao clicar na coluna na grid de projetos
-        self.tbl_projects.setSortingEnabled(True)
         
         # Montagem da tela
         self.content_layout.addLayout(form_layout)
@@ -110,6 +95,7 @@ class ProjectView(BaseView):
         self.txt_projeto.clear()
         self.cbo_banco.setCurrentIndex(0)
         self.txt_host.clear()
+        self.txt_database.clear()
         self.txt_schema.clear()
         self.txt_porta.clear()
 
@@ -123,14 +109,15 @@ class ProjectView(BaseView):
             self.tbl_projects.setItem(row, 1, QTableWidgetItem(project.nm_projeto))
             self.tbl_projects.setItem(row, 2, QTableWidgetItem(project.tp_database))
             self.tbl_projects.setItem(row, 3, QTableWidgetItem(project.nm_host or ""))
-            self.tbl_projects.setItem(row, 4, QTableWidgetItem(project.nm_schema or ""))
-            self.tbl_projects.setItem(row, 5, QTableWidgetItem(str(project.nu_porta) if project.nu_porta is not None else ""))
+            self.tbl_projects.setItem(row, 4, QTableWidgetItem(project.nm_database or ""))
+            self.tbl_projects.setItem(row, 5, QTableWidgetItem(project.nm_schema or ""))
+            self.tbl_projects.setItem(row, 6, QTableWidgetItem(str(project.nu_porta) if project.nu_porta is not None else ""))
         
-        # Redimensiona para os conteúdos e adiciona margem
-        self.tbl_projects.resizeColumnsToContents()
-        for col in range(self.tbl_projects.columnCount()):
-            w = self.tbl_projects.columnWidth(col)
-            self.tbl_projects.setColumnWidth(col, w + 20)
+        # BUG FIX: Alteração - Usando utilitário auto_fit_columns herdado de BaseView
+        self.auto_fit_columns(self.tbl_projects)
+        
+        # BUG FIX: Alteração - Coluna Porta (índice 6) com tamanho fixo correspondente ao tamanho do texto
+        self.tbl_projects.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeMode.ResizeToContents)
 
         self.tbl_projects.setSortingEnabled(True)
 
@@ -157,6 +144,7 @@ class ProjectView(BaseView):
             id_projeto=self.current_project_id,
             nm_projeto=self.txt_projeto.text(),
             tp_database=self.cbo_banco.currentText(),
+            nm_database=self.txt_database.text(),
             nm_host=self.txt_host.text(),
             nm_schema=self.txt_schema.text(),
             nu_porta=porta
@@ -167,6 +155,7 @@ class ProjectView(BaseView):
         self.txt_projeto.setText(project.nm_projeto or "")
         self.cbo_banco.setCurrentText(project.tp_database or "")
         self.txt_host.setText(project.nm_host or "")
+        self.txt_database.setText(project.nm_database or "")
         self.txt_schema.setText(project.nm_schema or "")
         self.txt_porta.setText(str(project.nu_porta) if project.nu_porta is not None else "")
         
@@ -192,5 +181,6 @@ class ProjectView(BaseView):
         # Toggling dinâmico de campos baseados em arquivo vs servidor
         is_file_db = database_name.lower() in ("sqlite", "access", "firebird_embedded", "duckdb")
         self.txt_host.setEnabled(not is_file_db)
+        self.txt_database.setEnabled(not is_file_db)
         self.txt_schema.setEnabled(not is_file_db)
         self.txt_porta.setEnabled(not is_file_db)

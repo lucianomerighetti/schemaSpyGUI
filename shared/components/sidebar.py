@@ -19,11 +19,12 @@ class SideBar(QWidget):
 
         self.bt_dashboard   = QPushButton("📊 Dashboard")
         self.bt_projects    = QPushButton("📁 Projetos")
-        self.bt_connections = QPushButton("🔌 Conexões")
+        self.bt_connections = QPushButton("🔗 Conexões")
         self.bt_execution   = QPushButton("⚙ Execuções")
         self.bt_history     = QPushButton("📜 Histórico")
         self.bt_settings    = QPushButton("🔧 Configurações")
         self.bt_about       = QPushButton("ℹ️ Sobre")
+        self.bt_quit        = QPushButton("❌ Sair")
 
         layout.addWidget(self.bt_dashboard)
         layout.addWidget(self.bt_projects)
@@ -32,6 +33,7 @@ class SideBar(QWidget):
         layout.addWidget(self.bt_history)
         layout.addWidget(self.bt_settings)
         layout.addWidget(self.bt_about)
+        layout.addWidget(self.bt_quit)
 
         layout.addStretch()
 
@@ -44,3 +46,7 @@ class SideBar(QWidget):
         self.bt_history.clicked.connect(lambda: self.navigate_requested.emit("history"))
         self.bt_settings.clicked.connect(lambda: self.navigate_requested.emit("setting"))
         self.bt_about.clicked.connect(lambda: self.navigate_requested.emit("about"))
+        
+        # BUG FIX: Implementação - Botão Sair encerrando a aplicação PyQt6 de forma limpa
+        from PyQt6.QtWidgets import QApplication
+        self.bt_quit.clicked.connect(QApplication.instance().quit)

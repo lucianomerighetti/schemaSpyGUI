@@ -23,7 +23,9 @@ class ConnectionService(BaseService):
         self.info(f"Criando conexão: {name}")
 
     def create_connection(self, dto: ConnectionDTO):
+        # BUG FIX: Implementação - Associando id_projeto ao criar conexão
         connection = Connection(
+            id_projeto=dto.id_projeto,
             nm_conexao=dto.nm_conexao,
             tp_database=dto.tp_database,
             nm_host=dto.nm_host,
@@ -45,6 +47,8 @@ class ConnectionService(BaseService):
         if not connection:
             raise Exception("Conexão não encontrada.")
 
+        # BUG FIX: Implementação - Atualizando id_projeto da conexão
+        connection.id_projeto = dto.id_projeto
         connection.nm_conexao = dto.nm_conexao
         connection.tp_database = dto.tp_database
         connection.nm_host = dto.nm_host

@@ -87,13 +87,13 @@ class MainWindow(QMainWindow):
         self.navigation.register_page("project", project_view)
         
         # Conexão
-        # BUG FIX Instanciação dos componentes MVC de Conexão. Código antes da correção: (apenas criava a view e registrava na navegação, sem repositório/serviço/viewmodel/controller)
+        # BUG FIX: Alteração - Instanciação dos componentes MVC de Conexão repassando o project_service para o controller
         connection_view = ConnectionView()
         self.connection_session = SessionLocal()
         connection_repository = ConnectionRepository(self.connection_session)
         connection_service = ConnectionService(connection_repository)
         connection_viewmodel = ConnectionViewModel(connection_service)
-        self.connection_controller = ConnectionController(connection_view, connection_viewmodel)
+        self.connection_controller = ConnectionController(connection_view, connection_viewmodel, project_service=project_service)
         self.navigation.register_page("connection", connection_view)
         
         # Execução

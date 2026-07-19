@@ -8,7 +8,8 @@ from PyQt6.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QFormLayout,
-    QHBoxLayout
+    QHBoxLayout,
+    QHeaderView
 )
 from PyQt6.QtGui import (
     QIntValidator
@@ -37,6 +38,7 @@ class ConnectionView(BaseView):
                 
         # Formulário
         form_layout = QFormLayout()
+        self.cbo_projeto = QComboBox()
         self.txt_conexao = QLineEdit()
         self.cbo_banco = QComboBox()
         self.cbo_banco.addItems([db["name"]for db in self.databases])
@@ -52,10 +54,22 @@ class ConnectionView(BaseView):
         self.txt_jdbc_driver = QLineEdit()
         self.txt_jdbc_url = QLineEdit()
         self.chk_ativo = QCheckBox()
+        self._projects_map = {}
         
         self.cbo_banco.currentTextChanged.connect(self._on_database_changed)
+        self.cbo_projeto.currentIndexChanged.connect(self._on_project_changed)
         self._on_database_changed(self.cbo_banco.currentText())
         
+        # Conectar os sinais para a atualização reativa da JDBC URL
+        self.txt_host.textChanged.connect(self.update_jdbc_url)
+        self.txt_porta.textChanged.connect(self.update_jdbc_url)
+        self.txt_database.textChanged.connect(self.update_jdbc_url)
+        self.txt_schema.textChanged.connect(self.update_jdbc_url)
+        self.txt_usuario.textChanged.connect(self.update_jdbc_url)
+        self.txt_password.textChanged.connect(self.update_jdbc_url)
+        self.txt_caminho.textChanged.connect(self.update_jdbc_url)
+        
+        form_layout.addRow(QLabel("Projeto"), self.cbo_projeto)
         form_layout.addRow(QLabel("Nome Conexão"), self.txt_conexao)
         form_layout.addRow(QLabel("Banco"), self.cbo_banco)
         form_layout.addRow(QLabel("Host"), self.txt_host)
@@ -217,6 +231,13 @@ class ConnectionView(BaseView):
         
         # Redimensiona para os conteúdos e adiciona margem
         self.auto_fit_columns(self.tbl_connections)
+        
+        # BUG FIX: Alteração - Configurar a tabela de conexões com modo elástico (Stretch), exceto ID (coluna 0), Porta (coluna 4) e Ativo (coluna 8)
+        header = self.tbl_connections.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
+        header.setSectionResizeMode(8, QHeaderView.ResizeMode.ResizeToContents)
 
         self.tbl_connections.setSortingEnabled(True)
     
@@ -268,4 +289,59 @@ class ConnectionView(BaseView):
         self.txt_schema.setEnabled(not is_file_db)
         self.txt_usuario.setEnabled(not is_file_db)
         self.txt_password.setEnabled(not is_file_db)
-    
+
+        # BUG FIX: Alteração - Recalcular a URL JDBC ao alterar o banco
+        self.update_jdbc_url()
+
+    # BUG FIX: Implementação - Popula o combobox com a lista de projetos ativos e guarda o mapeamento
+    def populate_projects_combo(self, projects):
+        self.cbo_projeto.blockSignals(True)
+        self.cbo_projeto.clear()
+        self.cbo_projeto.addItem("Selecione um Projeto", None)
+        self._projects_map = {}
+        for p in projects:
+            self.cbo_projeto.addItem(p.nm_projeto, p.id_projeto)
+            self._projects_map[p.id_projeto] = p
+        self.cbo_projeto.blockSignals(False)
+
+    # BUG FIX: Implementação - Evento acionado ao alterar o projeto no combobox
+    def _on_project_changed(self, index):
+        if index <= 0:
+            return
+        
+        project_id = self.cbo_projeto.currentData()
+        if not project_id:
+            return
+            
+        project = self._projects_map.get(project_id)
+        if not project:
+            return
+            
+        # Preencher campos de acordo com o projeto selecionado
+        self.txt_conexao.setText(project.nm_projeto or "")
+        self.cbo_banco.setCurrentText(project.tp_database or "")
+        self.txt_host.setText(project.nm_host or "")
+        self.txt_porta.setText(str(project.nu_porta) if project.nu_porta is not None else "")
+        self.txt_schema.setText(project.nm_schema or "")
+        
+        # Desencadear lógica de visibilidade do banco de dados e recalcular URL
+        self._on_database_changed(project.tp_database)
+
+    # BUG FIX: Implementação - Método reativo para montar a URL JDBC dinamicamente de acordo com os inputs
+    def update_jdbc_url(self):
+        database_name = self.cbo_banco.currentText()
+        database = next((db for db in self.databases if db["name"] == database_name), None)
+        if not database:
+            return
+            
+        jdbc_template = database.get("jdbc_template", "")
+        jdbc_url = (jdbc_template
+                    .replace("{host}", self.txt_host.text().strip())
+                    .replace("{port}", self.txt_porta.text().strip())
+                    .replace("{database}", self.txt_database.text().strip())
+                    .replace("{file}", self.txt_caminho.text().strip())
+                    .replace("{schema}", self.txt_schema.text().strip())
+                    .replace("{user}", self.txt_usuario.text().strip())
+                    .replace("{password}", self.txt_password.text().strip()))
+                    
+        self.txt_jdbc_url.setText(jdbc_url)

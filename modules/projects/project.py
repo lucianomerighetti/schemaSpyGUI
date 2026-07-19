@@ -23,11 +23,18 @@ class Project(Base):
     )
 
     nm_projeto: Mapped[str] = mapped_column(
-        String(100)
+        String(100),
+        unique=True
     )
 
     tp_database: Mapped[str] = mapped_column(
         String(50)
+    )
+
+    # BUG FIX: Implementação - Adicionando nm_database em tb_projeto
+    nm_database: Mapped[Optional[str]] = mapped_column(
+        String(100),
+        nullable=True
     )
 
     nm_host: Mapped[Optional[str]] = mapped_column(
@@ -44,3 +51,21 @@ class Project(Base):
         Integer,
         nullable=True
     )
+
+    # BUG FIX: Implementação - Propriedades lógicas para obter o tipo de banco de dados (equivalente ao Connection)
+    @property
+    def is_file_database(self) -> bool:
+        return self.tp_database.lower() in {
+            "sqlite",
+            "access",
+            "firebird_embedded",
+            "duckdb"
+        }
+
+    @property
+    def is_server_database(self) -> bool:
+        return not self.is_file_database
+
+    @property
+    def is_oracle(self) -> bool:
+        return self.tp_database == "Oracle"
