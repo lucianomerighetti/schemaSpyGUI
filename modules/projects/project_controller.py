@@ -1,11 +1,11 @@
 # Artefato:  project_controller.py
 
-from modules.projects import (
-    ProjectViewModel
-)
-from modules.projects.project_validator import (
-    ProjectValidator
-)
+import json
+from PyQt6.QtWidgets import QFileDialog
+from .project_viewmodel import ProjectViewModel
+from .project_dto import ProjectDTO
+from .import_dialog import ImportProjectsDialog
+from .project_validator import ProjectValidator
 
 class ProjectController:
 
@@ -20,6 +20,7 @@ class ProjectController:
         self.view.btn_new.clicked.connect(self.new_project)
         self.view.btn_save.clicked.connect(self.save_project)
         self.view.btn_delete.clicked.connect(self.delete_project)
+        self.view.btn_import.clicked.connect(self.import_projects)
         # Seleção da Grid
         self.view.project_selected.connect(self.select_project)
     
@@ -90,3 +91,49 @@ class ProjectController:
             self.view.load_project(project)
         except Exception as ex:
             self.view.show_error_message("Project Controller - Select", str(ex))
+
+    # BUG FIX: Implementação - Método de importação em lote a partir do diálogo modal
+    def import_projects(self):
+        try:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self.view,
+                "Importar Projetos (JSON)",
+                "",
+                "Arquivos JSON (*.json)"
+            )
+            if not file_path:
+                return
+
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+
+            if isinstance(data, dict):
+                data = [data]
+
+            if not isinstance(data, list):
+                self.view.show_error_message("Erro de Formato", "O arquivo JSON deve conter um projeto ou uma lista de projetos.")
+                return
+
+            dialog = ImportProjectsDialog(data, parent=self.view)
+            if dialog.exec() == ImportProjectsDialog.DialogCode.Accepted:
+                imported_items = dialog.get_imported_projects()
+                
+                success_count = 0
+                for item in imported_items:
+                    dto = ProjectDTO(
+                        nm_projeto=item["nm_projeto"],
+                        tp_database=item["tp_database"],
+                        nm_database=item["nm_database"],
+                        nm_host=item["nm_host"],
+                        nm_schema=item["nm_schema"],
+                        nu_porta=item["nu_porta"]
+                    )
+                    self.viewmodel.create_project(dto)
+                    success_count += 1
+                
+                self.view.show_message("Sucesso", f"{success_count} projeto(s) importado(s) com sucesso.")
+                self.read_project()
+                self.view.clear_form()
+
+        except Exception as ex:
+            self.view.show_error_message("Project Controller - Import", str(ex))

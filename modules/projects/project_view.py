@@ -69,14 +69,16 @@ class ProjectView(BaseView):
         self.btn_new = QPushButton("Novo")
         self.btn_save = QPushButton("Salvar")
         self.btn_delete = QPushButton("Excluir")
+        self.btn_import = QPushButton("Importar")
 
         button_layout.addWidget(self.btn_new)
         button_layout.addWidget(self.btn_save)
         button_layout.addWidget(self.btn_delete)
+        button_layout.addWidget(self.btn_import)
         button_layout.addStretch()
 
         # BUG FIX: Alteração - Todos os botões devem possuir o mesmo tamanho (utilizando a classe base BaseView)
-        self.adjust_button_sizes([self.btn_new, self.btn_save, self.btn_delete])
+        self.adjust_button_sizes([self.btn_new, self.btn_save, self.btn_delete, self.btn_import])
 
         # Grid
         self.tbl_projects = QTableWidget()
