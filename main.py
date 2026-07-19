@@ -14,6 +14,9 @@ from modules.projects import (
 from modules.connections import (
     Connection
 )
+from modules.settings import (
+    Setting
+)
 from PyQt6.QtGui import QIcon
 from infrastructure.database.database import DB_PATH
 import sqlite3
@@ -30,7 +33,7 @@ def run_migrations():
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tb_conexao'")
             if cursor.fetchone():
                 cursor.execute("PRAGMA table_info(tb_conexao)")
-                columns = [col[1] for col in cursor.fetchall()]
+                columns = [col[1].lower() for col in cursor.fetchall()]
                 if "id_projeto" not in columns:
                     cursor.execute("ALTER TABLE tb_conexao ADD COLUMN id_projeto INTEGER REFERENCES tb_projeto(id_projeto)")
                     conn.commit()
@@ -49,7 +52,7 @@ def run_migrations():
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tb_projeto'")
             if cursor.fetchone():
                 cursor.execute("PRAGMA table_info(tb_projeto)")
-                columns = [col[1] for col in cursor.fetchall()]
+                columns = [col[1].lower() for col in cursor.fetchall()]
                 if "nm_database" not in columns:
                     cursor.execute("ALTER TABLE tb_projeto ADD COLUMN nm_database VARCHAR(100)")
                     conn.commit()

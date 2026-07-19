@@ -76,7 +76,22 @@ class ProjectController:
                 self.view.show_warning_message("Aviso", "Selecione um projeto.")
                 return
 
-            if not self.view.show_question_message("Confirmação", "Deseja excluir o projeto?"):
+            session = self.viewmodel.service.repository.session
+            from modules.connections.connection import Connection
+            from modules.settings.setting import Setting
+
+            n_connections = session.query(Connection).filter(Connection.id_projeto == id_projeto).count()
+            n_settings = session.query(Setting).join(Connection).filter(Connection.id_projeto == id_projeto).count()
+
+            msg = (
+                f"A exclusão deste projeto será realizada em cascata e removerá permanentemente:\n"
+                f"- 1 Projeto\n"
+                f"- {n_connections} Conexão(ões) associada(s)\n"
+                f"- {n_settings} Configuração(ões) associada(s)\n\n"
+                f"Deseja continuar com a exclusão?"
+            )
+
+            if not self.view.show_question_message("Confirmação de Exclusão em Cascata", msg):
                 return
 
             self.viewmodel.delete_project(id_projeto)

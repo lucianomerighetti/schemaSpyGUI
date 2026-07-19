@@ -18,6 +18,7 @@ class ConnectionController:
         self.view = view
         self.viewmodel = viewmodel
         self.project_service = project_service
+        self.on_data_changed_callbacks = []
         self._connect_signals()
         self.read_connection()
 
@@ -69,6 +70,11 @@ class ConnectionController:
             self.view.show_message("Sucesso", "Conexão salva com sucesso.")
             self.read_connection()
             self.view.clear_form()
+            for callback in self.on_data_changed_callbacks:
+                try:
+                    callback()
+                except Exception:
+                    pass
         except Exception as ex:
             self.view.show_error_message("Connection Controller - Save", str(ex))
 
@@ -81,10 +87,30 @@ class ConnectionController:
                 self.view.show_warning_message("Aviso", "Selecione uma conexão.")
                 return
 
+            session = self.viewmodel.service.repository.session
+            from modules.settings.setting import Setting
+
+            n_settings = session.query(Setting).filter(Setting.id_conexao == id_conexao).count()
+
+            msg = (
+                f"A exclusão desta conexão será realizada em cascata e removerá permanentemente:\n"
+                f"- 1 Conexão\n"
+                f"- {n_settings} Configuração(ões) associada(s)\n\n"
+                f"Deseja continuar com a exclusão?"
+            )
+
+            if not self.view.show_question_message("Confirmação de Exclusão em Cascata", msg):
+                return
+
             self.viewmodel.delete_connection(id_conexao)
             self.view.show_message("Sucesso", "Conexão excluída.")
             self.read_connection()
             self.view.clear_form()
+            for callback in self.on_data_changed_callbacks:
+                try:
+                    callback()
+                except Exception:
+                    pass
         except Exception as ex:
             self.view.show_error_message("Connection Controller - Delete", str(ex))
 

@@ -40,8 +40,14 @@ from modules.connections import (
 from modules.execution.execution_view    import ExecutionView
 # Histórico
 from modules.history.history_view        import HistoryView
-# COnfigurações
-from modules.settings.settings_view      import SettingView
+# Configurações
+from modules.settings import (
+    SettingRepository,
+    SettingService,
+    SettingViewModel,
+    SettingController,
+    SettingView
+)
 # Sobre
 from modules.about.about_view            import AboutView
 
@@ -110,7 +116,16 @@ class MainWindow(QMainWindow):
 
         # Configurações
         setting_view = SettingView()
+        self.setting_session = SessionLocal()
+        setting_repository = SettingRepository(self.setting_session)
+        setting_service = SettingService(setting_repository)
+        setting_viewmodel = SettingViewModel(setting_service)
+        self.setting_controller = SettingController(setting_view, setting_viewmodel, connection_service=connection_service)
         self.navigation.register_page("setting", setting_view)
+
+        # Regerar dados de configurações quando houver alteração de projetos ou conexões
+        self.project_controller.on_data_changed_callbacks.append(self.setting_controller.read_setting)
+        self.connection_controller.on_data_changed_callbacks.append(self.setting_controller.read_setting)
 
         # Sobre
         about_view = AboutView()
@@ -133,6 +148,11 @@ class MainWindow(QMainWindow):
         try:
             if hasattr(self, 'connection_session') and self.connection_session:
                 self.connection_session.close()
+        except Exception:
+            pass
+        try:
+            if hasattr(self, 'setting_session') and self.setting_session:
+                self.setting_session.close()
         except Exception:
             pass
         super().closeEvent(event)

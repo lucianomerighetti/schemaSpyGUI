@@ -59,4 +59,23 @@ QTableWidget::item:hover {
     background-color: #4A6FA5;
     color: #FFFFFF;
 }
+
+/* --------------------------------------------------
+   Tab Widget & Tab Bar
+-------------------------------------------------- */
+QTabWidget::pane {
+    border: 1px solid #2d2d30;
+    background-color: #1e1e1e;
+}
+
+QTabBar::tab {
+    background-color: #2d2d30;
+    color: #ffffff;
+    padding: 8px 16px;
+}
+
+QTabBar::tab:selected {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
 """

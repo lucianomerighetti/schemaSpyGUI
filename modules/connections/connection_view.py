@@ -69,7 +69,7 @@ class ConnectionView(BaseView):
         self.txt_password.textChanged.connect(self.update_jdbc_url)
         self.txt_caminho.textChanged.connect(self.update_jdbc_url)
         
-        form_layout.addRow(QLabel("Projeto"), self.cbo_projeto)
+        form_layout.addRow(QLabel("Projeto Associado"), self.cbo_projeto)
         form_layout.addRow(QLabel("Nome Conexão"), self.txt_conexao)
         form_layout.addRow(QLabel("Banco"), self.cbo_banco)
         form_layout.addRow(QLabel("Host"), self.txt_host)
