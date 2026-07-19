@@ -56,3 +56,6 @@ class ProjectService(BaseService):
         
     def get_project_by_id(self, id_projeto):
         return self.repository.get_by_id(id_projeto)
+
+    def get_project_by_name(self, nm_projeto: str):
+        return self.repository.get_by_name(nm_projeto)

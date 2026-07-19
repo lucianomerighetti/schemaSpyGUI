@@ -23,3 +23,6 @@ class ProjectViewModel(BaseViewModel):
     
     def delete_project(self, id_projeto: int):
         return self.service.delete_project(id_projeto)
+
+    def get_project_by_name(self, nm_projeto: str):
+        return self.service.get_project_by_name(nm_projeto)

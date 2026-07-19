@@ -15,6 +15,7 @@ class ProjectController:
         self.view = view
         self.viewmodel = viewmodel
         self.connection_service = connection_service
+        self.on_data_changed_callbacks = []
         self._connect_signals()
         self.read_project()
 
@@ -113,10 +114,19 @@ class ProjectController:
             # BUG FIX: Implementação - Desaninhar coleções do JSON se for dicionário de primeiro nível
             if isinstance(data, dict):
                 extracted_list = None
+                # 1. Tentar encontrar uma chave contendo uma lista direta de objetos
                 for key, val in data.items():
                     if isinstance(val, list):
                         extracted_list = val
                         break
+                # 2. Se não encontrou lista, tentar encontrar chaves como "connections", "projects" ou "items"
+                # que contenham um dicionário de objetos (como no DBeaver)
+                if extracted_list is None:
+                    for key, val in data.items():
+                        if isinstance(val, dict) and key in ("connections", "projects", "items"):
+                            extracted_list = list(val.values())
+                            break
+                            
                 if extracted_list is not None:
                     data = extracted_list
                 else:
@@ -168,17 +178,38 @@ class ProjectController:
                             duplicate_count += 1
                             continue # Ignora conexões duplicadas
                     
-                    # 3. Criar o Projeto no módulo Projeto
-                    dto_projeto = ProjectDTO(
-                        nm_projeto=nm_projeto,
-                        tp_database=tp_database,
-                        nm_database=nm_database,
-                        nm_host=nm_host,
-                        nm_schema=nm_schema,
-                        nu_porta=nu_porta
-                    )
-                    project_entity = self.viewmodel.create_project(dto_projeto)
-                    id_projeto = project_entity.id_projeto
+                    # 3. Criar ou atualizar o Projeto no módulo Projeto evitando erros de UNIQUE constraint
+                    project_entity = self.viewmodel.get_project_by_name(nm_projeto)
+                    if project_entity:
+                        id_projeto = project_entity.id_projeto
+                        # Compara todos os campos para verificar duplicidade ou se necessita de atualização
+                        if (project_entity.tp_database != tp_database or
+                            project_entity.nm_database != nm_database or
+                            project_entity.nm_host != nm_host or
+                            project_entity.nm_schema != nm_schema or
+                            project_entity.nu_porta != nu_porta):
+                            
+                            dto_projeto = ProjectDTO(
+                                id_projeto=id_projeto,
+                                nm_projeto=nm_projeto,
+                                tp_database=tp_database,
+                                nm_database=nm_database,
+                                nm_host=nm_host,
+                                nm_schema=nm_schema,
+                                nu_porta=nu_porta
+                            )
+                            self.viewmodel.update_project(dto_projeto)
+                    else:
+                        dto_projeto = ProjectDTO(
+                            nm_projeto=nm_projeto,
+                            tp_database=tp_database,
+                            nm_database=nm_database,
+                            nm_host=nm_host,
+                            nm_schema=nm_schema,
+                            nu_porta=nu_porta
+                        )
+                        project_entity = self.viewmodel.create_project(dto_projeto)
+                        id_projeto = project_entity.id_projeto
                     
                     # 4. Gerar Driver e URL JDBC se não vierem diretamente mapeados/preenchidos
                     if not ds_jdbc_url or not ds_jdbc_driver:
@@ -223,6 +254,13 @@ class ProjectController:
                 self.view.show_message("Importação Concluída", msg)
                 self.read_project()
                 self.view.clear_form()
+                
+                # BUG FIX: Implementação - Disparar callbacks de dados alterados para recarregar módulos dependentes (como conexões)
+                for callback in self.on_data_changed_callbacks:
+                    try:
+                        callback()
+                    except Exception:
+                        pass
 
         except Exception as ex:
             self.view.show_error_message("Project Controller - Import", str(ex))

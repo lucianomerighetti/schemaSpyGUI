@@ -96,6 +96,9 @@ class MainWindow(QMainWindow):
         connection_viewmodel = ConnectionViewModel(connection_service)
         self.connection_controller = ConnectionController(connection_view, connection_viewmodel, project_service=project_service)
         self.navigation.register_page("connection", connection_view)
+
+        # BUG FIX: Alteração - Ligar callback de dados alterados para recarregar as conexões na grid
+        self.project_controller.on_data_changed_callbacks.append(self.connection_controller.read_connection)
         
         # Execução
         execution_view = ExecutionView()

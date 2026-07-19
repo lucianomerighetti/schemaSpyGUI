@@ -100,7 +100,7 @@ class ConnectionView(BaseView):
 
         self.tbl_connections = QTableWidget()
         self.current_connection_id = None
-        self.configure_table(self.tbl_connections, ["ID", "Nome", "Banco", "Host", "Porta", "Database", "Schema", "Usuário", "Ativo"])
+        self.configure_table(self.tbl_connections, ["ID", "Projeto", "Conexão", "Banco", "Host", "Porta", "Database", "Schema", "Usuário", "Ativo"])
         self.tbl_connections.itemSelectionChanged.connect(self._on_selection_changed)
         
         # Montagem da tela
@@ -172,6 +172,7 @@ class ConnectionView(BaseView):
 
         return ConnectionDTO(
             id_conexao=self.current_connection_id,
+            id_projeto=self.cbo_projeto.currentData(),
             nm_conexao=self.txt_conexao.text(),
             tp_database=self.cbo_banco.currentText(),
             nm_host=self.txt_host.text(),
@@ -220,30 +221,55 @@ class ConnectionView(BaseView):
         for row, connection in enumerate(connections):
             self.tbl_connections.insertRow(row)
             self.tbl_connections.setItem(row, 0, QTableWidgetItem(str(connection.id_conexao)))
-            self.tbl_connections.setItem(row, 1, QTableWidgetItem(connection.nm_conexao))
-            self.tbl_connections.setItem(row, 2, QTableWidgetItem(connection.tp_database))
-            self.tbl_connections.setItem(row, 3, QTableWidgetItem(connection.nm_host or ""))
-            self.tbl_connections.setItem(row, 4, QTableWidgetItem(str(connection.nu_porta) if connection.nu_porta is not None else ""))
-            self.tbl_connections.setItem(row, 5, QTableWidgetItem(connection.nm_database or ""))
-            self.tbl_connections.setItem(row, 6, QTableWidgetItem(connection.nm_schema or ""))
-            self.tbl_connections.setItem(row, 7, QTableWidgetItem(connection.nm_usuario or ""))
-            self.tbl_connections.setItem(row, 8, QTableWidgetItem("Sim" if connection.fl_ativo else "Não"))
+            
+            # BUG FIX: Implementação - Exibir nome do projeto associado usando o mapeamento populado
+            project_name = ""
+            if connection.id_projeto:
+                project = self._projects_map.get(connection.id_projeto)
+                if project:
+                    project_name = project.nm_projeto
+            self.tbl_connections.setItem(row, 1, QTableWidgetItem(project_name))
+            self.tbl_connections.setItem(row, 2, QTableWidgetItem(connection.nm_conexao))
+            self.tbl_connections.setItem(row, 3, QTableWidgetItem(connection.tp_database))
+            self.tbl_connections.setItem(row, 4, QTableWidgetItem(connection.nm_host or ""))
+            self.tbl_connections.setItem(row, 5, QTableWidgetItem(str(connection.nu_porta) if connection.nu_porta is not None else ""))
+            self.tbl_connections.setItem(row, 6, QTableWidgetItem(connection.nm_database or ""))
+            self.tbl_connections.setItem(row, 7, QTableWidgetItem(connection.nm_schema or ""))
+            self.tbl_connections.setItem(row, 8, QTableWidgetItem(connection.nm_usuario or ""))
+            self.tbl_connections.setItem(row, 9, QTableWidgetItem("Sim" if connection.fl_ativo else "Não"))
         
         # Redimensiona para os conteúdos e adiciona margem
         self.auto_fit_columns(self.tbl_connections)
         
-        # BUG FIX: Alteração - Configurar a tabela de conexões com modo elástico (Stretch), exceto ID (coluna 0), Porta (coluna 4) e Ativo (coluna 8)
-        header = self.tbl_connections.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(8, QHeaderView.ResizeMode.ResizeToContents)
+        # BUG FIX: Alteração - Coluna Porta (índice 5) com tamanho fixo correspondente ao tamanho do texto (como na grid de projetos)
+        self.tbl_connections.horizontalHeader().setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
 
         self.tbl_connections.setSortingEnabled(True)
     
     
     def load_connection(self, connection):
         self.current_connection_id = connection.id_conexao
+        
+        # BUG FIX: Implementação - Obter o nome do projeto escrito na coluna Projeto da grid e selecioná-lo no combobox
+        row = self.tbl_connections.currentRow()
+        project_name = ""
+        if row >= 0:
+            item_proj = self.tbl_connections.item(row, 1)
+            if item_proj:
+                project_name = item_proj.text().strip()
+
+        # Selecionar o projeto correto no combobox bloqueando sinais temporariamente para não limpar credenciais
+        self.cbo_projeto.blockSignals(True)
+        if project_name:
+            index = self.cbo_projeto.findText(project_name)
+            if index >= 0:
+                self.cbo_projeto.setCurrentIndex(index)
+            else:
+                self.cbo_projeto.setCurrentIndex(0)
+        else:
+            self.cbo_projeto.setCurrentIndex(0)
+        self.cbo_projeto.blockSignals(False)
+
         self.txt_conexao.setText(connection.nm_conexao or "")
         self.cbo_banco.setCurrentText(connection.tp_database or "")
         self.txt_host.setText(connection.nm_host or "")
