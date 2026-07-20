@@ -96,3 +96,71 @@ def test_validator_missing_name():
     dto2 = SettingDTO(nm_setting="   ", id_conexao=None)
     report2 = validator.validate(dto2)
     assert not report2.valid
+
+def test_new_schemaspy_parameters(db_session):
+    repo = SettingRepository(db_session)
+    service = SettingService(repo)
+    
+    dto = SettingDTO(
+        nm_setting="Parameters Config",
+        schemas_list="sch1,sch2",
+        catalog_filter="cat1",
+        renderer=":cairo",
+        image_format="svg",
+        degree_of_separation=2,
+        graphviz_path="/usr/bin/graphviz",
+        connection_properties="ssl=true",
+        language="pt-br",
+        verbose=True,
+        quiet=False,
+        post_processing="cleanup.sh",
+        prompt_password=True
+    )
+    
+    created = service.create_setting(dto)
+    assert created.schemas_list == "sch1,sch2"
+    assert created.catalog_filter == "cat1"
+    assert created.renderer == ":cairo"
+    assert created.image_format == "svg"
+    assert created.degree_of_separation == 2
+    assert created.graphviz_path == "/usr/bin/graphviz"
+    assert created.connection_properties == "ssl=true"
+    assert created.language == "pt-br"
+    assert created.verbose is True
+    assert created.quiet is False
+    assert created.post_processing == "cleanup.sh"
+    assert created.prompt_password is True
+
+    # Update
+    dto_update = SettingDTO(
+        id_setting=created.id_setting,
+        nm_setting="Parameters Config",
+        schemas_list="sch3",
+        catalog_filter="cat2",
+        renderer=":gd",
+        image_format="png",
+        degree_of_separation=1,
+        graphviz_path="/usr/local/bin/graphviz",
+        connection_properties="ssl=false",
+        language="en",
+        verbose=False,
+        quiet=True,
+        post_processing="done.sh",
+        prompt_password=False
+    )
+    service.update_setting(dto_update)
+    
+    fetched = service.get_setting_by_id(created.id_setting)
+    assert fetched.schemas_list == "sch3"
+    assert fetched.catalog_filter == "cat2"
+    assert fetched.renderer == ":gd"
+    assert fetched.image_format == "png"
+    assert fetched.degree_of_separation == 1
+    assert fetched.graphviz_path == "/usr/local/bin/graphviz"
+    assert fetched.connection_properties == "ssl=false"
+    assert fetched.language == "en"
+    assert fetched.verbose is False
+    assert fetched.quiet is True
+    assert fetched.post_processing == "done.sh"
+    assert fetched.prompt_password is False
+

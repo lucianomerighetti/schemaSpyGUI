@@ -84,6 +84,8 @@ class SettingView(BaseView):
         properties_path_layout.addWidget(self.btn_properties_path)
 
         self.txt_properties_text = QLineEdit()
+        self.txt_connection_properties = QLineEdit()
+        self.txt_connection_properties.setPlaceholderText("Ex: key1=val1;key2=val2")
 
         db_form.addRow(QLabel("Conexão Associada:"), self.cbo_conexao)
         db_form.addRow(QLabel("Nome Configuração:"), self.txt_nm_setting)
@@ -91,6 +93,7 @@ class SettingView(BaseView):
         db_form.addRow(QLabel("Path to SchemaSpy jar:"), schemaspy_layout)
         db_form.addRow(QLabel("Properties Path:"), properties_path_layout)
         db_form.addRow(QLabel("Properties:"), self.txt_properties_text)
+        db_form.addRow(QLabel("Connection Properties (-connprops):"), self.txt_connection_properties)
 
         # Painéis inferiores de Qualidade e Flags
         bottom_params_layout = QHBoxLayout()
@@ -131,9 +134,18 @@ class SettingView(BaseView):
         col3.addWidget(self.chk_no_ads)
         col3.addWidget(self.chk_show_finish)
 
+        col4 = QVBoxLayout()
+        self.chk_verbose = QCheckBox("Verbose mode (-v)")
+        self.chk_quiet = QCheckBox("Quiet mode (-q)")
+        self.chk_prompt_password = QCheckBox("Prompt Password (-prompt)")
+        col4.addWidget(self.chk_verbose)
+        col4.addWidget(self.chk_quiet)
+        col4.addWidget(self.chk_prompt_password)
+
         flags_grid.addLayout(col1)
         flags_grid.addLayout(col2)
         flags_grid.addLayout(col3)
+        flags_grid.addLayout(col4)
 
         bottom_params_layout.addWidget(quality_group, 1)
         bottom_params_layout.addWidget(flags_group, 2)
@@ -182,6 +194,23 @@ class SettingView(BaseView):
         self.txt_column_exclusion_regex = QLineEdit()
         self.chk_excluded_relationships = QCheckBox("Excluded relationships")
 
+        self.txt_schemas_list = QLineEdit()
+        self.txt_schemas_list.setPlaceholderText("Ex: schema1,schema2,schema3")
+
+        self.txt_catalog_filter = QLineEdit()
+        self.txt_catalog_filter.setPlaceholderText("Ex: catalog_name")
+
+        self.txt_graphviz_path = QLineEdit()
+        self.btn_graphviz_path = QPushButton("Escolher")
+        self.btn_graphviz_path.clicked.connect(lambda: self._choose_dir(self.txt_graphviz_path))
+        
+        graphviz_layout = QHBoxLayout()
+        graphviz_layout.addWidget(self.txt_graphviz_path)
+        graphviz_layout.addWidget(self.btn_graphviz_path)
+
+        self.txt_post_processing = QLineEdit()
+        self.txt_post_processing.setPlaceholderText("Ex: echo 'Done!'")
+
         options_form.addRow(QLabel("Output Directory (-o):"), output_dir_layout)
         options_form.addRow(QLabel("Schema/s to explore (-s):"), schema_layout)
         options_form.addRow(QLabel("Metafile Path (-meta):"), meta_layout)
@@ -190,6 +219,10 @@ class SettingView(BaseView):
         options_form.addRow(QLabel("Table Exclusion RegExp (-I):"), self.txt_table_exclusion_regex)
         options_form.addRow(QLabel("Column Exclusion RegExp (-x):"), self.txt_column_exclusion_regex)
         options_form.addRow(QLabel(""), self.chk_excluded_relationships)
+        options_form.addRow(QLabel("Schemas List (-schemas):"), self.txt_schemas_list)
+        options_form.addRow(QLabel("Catalog Filter (-cat):"), self.txt_catalog_filter)
+        options_form.addRow(QLabel("Graphviz Path (-g):"), graphviz_layout)
+        options_form.addRow(QLabel("Post Processing Command (-post):"), self.txt_post_processing)
 
         # Style Group Box
         style_group = QGroupBox(" Style: (Modify the .css to specify HTML fonts) ")
@@ -210,6 +243,18 @@ class SettingView(BaseView):
         css_layout.addWidget(self.txt_css_path)
         css_layout.addWidget(self.btn_css_path)
 
+        self.txt_language = QLineEdit()
+        self.txt_language.setPlaceholderText("Ex: pt-br, en")
+
+        self.cbo_image_format = QComboBox()
+        self.cbo_image_format.addItems(["", "png", "svg", "gif", "jpeg"])
+
+        self.cbo_renderer = QComboBox()
+        self.cbo_renderer.addItems(["", ":cairo", ":gd", ":gdiplus", ":quartz"])
+
+        self.cbo_degree = QComboBox()
+        self.cbo_degree.addItems(["", "1", "2"])
+
         style_grid.addWidget(QLabel("Charset (-charset):"), 0, 0)
         style_grid.addWidget(self.cbo_charset, 0, 1)
         style_grid.addWidget(QLabel("Font Name (-font):"), 0, 2)
@@ -218,6 +263,14 @@ class SettingView(BaseView):
         style_grid.addWidget(self.txt_font_size, 0, 5)
         style_grid.addWidget(QLabel("Style CSS file (-css):"), 1, 0)
         style_grid.addLayout(css_layout, 1, 1, 1, 5)
+        style_grid.addWidget(QLabel("Language (-lang):"), 2, 0)
+        style_grid.addWidget(self.txt_language, 2, 1)
+        style_grid.addWidget(QLabel("Image Format (-imageformat):"), 2, 2)
+        style_grid.addWidget(self.cbo_image_format, 2, 3)
+        style_grid.addWidget(QLabel("Renderer (-renderer):"), 2, 4)
+        style_grid.addWidget(self.cbo_renderer, 2, 5)
+        style_grid.addWidget(QLabel("Degree (-degree):"), 3, 0)
+        style_grid.addWidget(self.cbo_degree, 3, 1)
 
         output_layout.addWidget(options_group)
         output_layout.addWidget(style_group)
@@ -315,6 +368,18 @@ class SettingView(BaseView):
         self.txt_font_name.clear()
         self.txt_font_size.clear()
         self.txt_css_path.clear()
+        self.txt_schemas_list.clear()
+        self.txt_catalog_filter.clear()
+        self.cbo_renderer.setCurrentIndex(0)
+        self.cbo_image_format.setCurrentIndex(0)
+        self.cbo_degree.setCurrentIndex(0)
+        self.txt_graphviz_path.clear()
+        self.txt_connection_properties.clear()
+        self.txt_language.clear()
+        self.chk_verbose.setChecked(False)
+        self.chk_quiet.setChecked(False)
+        self.txt_post_processing.clear()
+        self.chk_prompt_password.setChecked(False)
         
         self.tabs.setCurrentIndex(1)
 
@@ -370,7 +435,19 @@ class SettingView(BaseView):
             charset=self.cbo_charset.currentText().strip(),
             font_name=self.txt_font_name.text(),
             font_size=self.txt_font_size.text(),
-            css_path=self.txt_css_path.text()
+            css_path=self.txt_css_path.text(),
+            schemas_list=self.txt_schemas_list.text(),
+            catalog_filter=self.txt_catalog_filter.text(),
+            renderer=self.cbo_renderer.currentText().strip(),
+            image_format=self.cbo_image_format.currentText().strip(),
+            degree_of_separation=int(self.cbo_degree.currentText()) if self.cbo_degree.currentText() else None,
+            graphviz_path=self.txt_graphviz_path.text(),
+            connection_properties=self.txt_connection_properties.text(),
+            language=self.txt_language.text(),
+            verbose=self.chk_verbose.isChecked(),
+            quiet=self.chk_quiet.isChecked(),
+            post_processing=self.txt_post_processing.text(),
+            prompt_password=self.chk_prompt_password.isChecked()
         )
 
     def load_setting(self, s):
@@ -413,6 +490,18 @@ class SettingView(BaseView):
         self.txt_font_name.setText(s.font_name or "")
         self.txt_font_size.setText(s.font_size or "")
         self.txt_css_path.setText(s.css_path or "")
+        self.txt_schemas_list.setText(s.schemas_list or "")
+        self.txt_catalog_filter.setText(s.catalog_filter or "")
+        self.cbo_renderer.setCurrentText(s.renderer or "")
+        self.cbo_image_format.setCurrentText(s.image_format or "")
+        self.cbo_degree.setCurrentText(str(s.degree_of_separation) if s.degree_of_separation is not None else "")
+        self.txt_graphviz_path.setText(s.graphviz_path or "")
+        self.txt_connection_properties.setText(s.connection_properties or "")
+        self.txt_language.setText(s.language or "")
+        self.chk_verbose.setChecked(s.verbose or False)
+        self.chk_quiet.setChecked(s.quiet or False)
+        self.txt_post_processing.setText(s.post_processing or "")
+        self.chk_prompt_password.setChecked(s.prompt_password or False)
         
         self.tabs.setCurrentIndex(1)
 

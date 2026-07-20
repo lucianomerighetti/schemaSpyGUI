@@ -64,6 +64,33 @@ def run_migrations():
                 cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_nm_projeto ON tb_projeto(nm_projeto)")
                 conn.commit()
 
+            # --- Migrações de tb_configuracao ---
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='tb_configuracao'")
+            if cursor.fetchone():
+                cursor.execute("PRAGMA table_info(tb_configuracao)")
+                columns = [col[1].lower() for col in cursor.fetchall()]
+                
+                migrations = [
+                    ("DS_SCHEMAS_LIST", "ALTER TABLE tb_configuracao ADD COLUMN DS_SCHEMAS_LIST VARCHAR(1000)"),
+                    ("DS_CATALOG_FILTER", "ALTER TABLE tb_configuracao ADD COLUMN DS_CATALOG_FILTER VARCHAR(255)"),
+                    ("NM_RENDERER", "ALTER TABLE tb_configuracao ADD COLUMN NM_RENDERER VARCHAR(100)"),
+                    ("CD_IMAGE_FORMAT", "ALTER TABLE tb_configuracao ADD COLUMN CD_IMAGE_FORMAT VARCHAR(50)"),
+                    ("NR_DEGREE_OF_SEPARATION", "ALTER TABLE tb_configuracao ADD COLUMN NR_DEGREE_OF_SEPARATION INTEGER"),
+                    ("DS_GRAPHVIZ_PATH", "ALTER TABLE tb_configuracao ADD COLUMN DS_GRAPHVIZ_PATH VARCHAR(1000)"),
+                    ("DS_CONNECTION_PROPERTIES", "ALTER TABLE tb_configuracao ADD COLUMN DS_CONNECTION_PROPERTIES VARCHAR(1000)"),
+                    ("CD_LANGUAGE", "ALTER TABLE tb_configuracao ADD COLUMN CD_LANGUAGE VARCHAR(50)"),
+                    ("FL_VERBOSE", "ALTER TABLE tb_configuracao ADD COLUMN FL_VERBOSE BOOLEAN DEFAULT 0"),
+                    ("FL_QUIET", "ALTER TABLE tb_configuracao ADD COLUMN FL_QUIET BOOLEAN DEFAULT 0"),
+                    ("DS_POST_PROCESSING", "ALTER TABLE tb_configuracao ADD COLUMN DS_POST_PROCESSING VARCHAR(1000)"),
+                    ("FL_PROMPT_PASSWORD", "ALTER TABLE tb_configuracao ADD COLUMN FL_PROMPT_PASSWORD BOOLEAN DEFAULT 0")
+                ]
+                
+                for col_name, sql in migrations:
+                    if col_name.lower() not in columns:
+                        cursor.execute(sql)
+                        conn.commit()
+                        print(f"Migração: Coluna {col_name} adicionada em tb_configuracao.")
+
             # --- Migrações de ta_parametro ---
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ta_parametro'")
             if cursor.fetchone():
@@ -107,7 +134,7 @@ def seed_parameters():
             ("-fontsize", "Font size for generated HTML", "NR_FONT_SIZE"),
             ("-css", "Path to custom CSS file", "DS_CSS_PATH"),
             ("-vizjs", "Use embedded Viz.js instead of Graphviz", None),
-            ("-degree", "Limits degree of separation in diagrams (1 or 2)", None),
+            ("-degree", "Limits degree of separation in diagrams (1 or 2)", "NR_DEGREE_OF_SEPARATION"),
             ("-noRows", "Don't query or display row counts", "FL_NO_ROWS"),
             ("-rails", "Specifies if it is a Ruby on Rails database", "FL_RAILS"),
             ("-aHTML", "Allow HTML in comments", "FL_A_HTML"),
@@ -115,7 +142,18 @@ def seed_parameters():
             ("-noLogo", "Don't include the SchemaSpy logo", "FL_NO_LOGO"),
             ("-noAds", "Don't display sponsor ads", "FL_NO_ADS"),
             ("-dincFK", "Don't query foreign keys", "FL_DINC_FK"),
-            ("-sso", "Single Sign-On", "FL_SINGLE_SIGN_ON")
+            ("-sso", "Single Sign-On", "FL_SINGLE_SIGN_ON"),
+            ("-schemas", "Comma-separated list of schemas to analyze", "DS_SCHEMAS_LIST"),
+            ("-catalog", "Catalog name to filter analysis", "DS_CATALOG_FILTER"),
+            ("-renderer", "Graphviz renderer engine (e.g. :cairo)", "NM_RENDERER"),
+            ("-imageformat", "Output diagram image format (e.g. svg, png)", "CD_IMAGE_FORMAT"),
+            ("-g", "Path to Graphviz installation directory", "DS_GRAPHVIZ_PATH"),
+            ("-connprops", "Connection properties as key1=val1;key2=val2", "DS_CONNECTION_PROPERTIES"),
+            ("-lang", "Language code for the report (e.g. pt-br)", "CD_LANGUAGE"),
+            ("-v", "Verbose execution output", "FL_VERBOSE"),
+            ("-q", "Quiet mode - suppresses output", "FL_QUIET"),
+            ("-post", "Post-processing command script", "DS_POST_PROCESSING"),
+            ("-prompt", "Prompt database password on execution", "FL_PROMPT_PASSWORD")
         ]
         
         for name, desc, col_name in parameters:

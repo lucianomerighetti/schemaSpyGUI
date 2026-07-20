@@ -42,7 +42,19 @@ class SettingService(BaseService):
             charset=dto.charset,
             font_name=dto.font_name,
             font_size=dto.font_size,
-            css_path=dto.css_path
+            css_path=dto.css_path,
+            schemas_list=dto.schemas_list,
+            catalog_filter=dto.catalog_filter,
+            renderer=dto.renderer,
+            image_format=dto.image_format,
+            degree_of_separation=dto.degree_of_separation,
+            graphviz_path=dto.graphviz_path,
+            connection_properties=dto.connection_properties,
+            language=dto.language,
+            verbose=dto.verbose,
+            quiet=dto.quiet,
+            post_processing=dto.post_processing,
+            prompt_password=dto.prompt_password
         )
         return self.repository.create(setting)
 
@@ -81,7 +93,19 @@ class SettingService(BaseService):
         setting.font_name = dto.font_name
         setting.font_size = dto.font_size
         setting.css_path = dto.css_path
-
+        setting.schemas_list = dto.schemas_list
+        setting.catalog_filter = dto.catalog_filter
+        setting.renderer = dto.renderer
+        setting.image_format = dto.image_format
+        setting.degree_of_separation = dto.degree_of_separation
+        setting.graphviz_path = dto.graphviz_path
+        setting.connection_properties = dto.connection_properties
+        setting.language = dto.language
+        setting.verbose = dto.verbose
+        setting.quiet = dto.quiet
+        setting.post_processing = dto.post_processing
+        setting.prompt_password = dto.prompt_password
+ 
         self.repository.update()
 
     def delete_setting(self, id_setting: int):

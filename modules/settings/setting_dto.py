@@ -43,6 +43,20 @@ class SettingDTO:
     font_size: str = ""
     css_path: str = ""
 
+    # New parameters for SchemaSpy v6.1.0
+    schemas_list: str = ""
+    catalog_filter: str = ""
+    renderer: str = ""
+    image_format: str = ""
+    degree_of_separation: Optional[int] = None
+    graphviz_path: str = ""
+    connection_properties: str = ""
+    language: str = ""
+    verbose: bool = False
+    quiet: bool = False
+    post_processing: str = ""
+    prompt_password: bool = False
+
     @property
     def is_new(self) -> bool:
         return self.id_setting is None

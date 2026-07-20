@@ -67,3 +67,17 @@ class Setting(Base):
     font_name: Mapped[Optional[str]] = mapped_column("NM_FONT", String(100), nullable=True)
     font_size: Mapped[Optional[str]] = mapped_column("NR_FONT_SIZE", String(50), nullable=True)
     css_path: Mapped[Optional[str]] = mapped_column("DS_CSS_PATH", String(1000), nullable=True)
+
+    # New parameters for SchemaSpy v6.1.0
+    schemas_list: Mapped[Optional[str]] = mapped_column("DS_SCHEMAS_LIST", String(1000), nullable=True)
+    catalog_filter: Mapped[Optional[str]] = mapped_column("DS_CATALOG_FILTER", String(255), nullable=True)
+    renderer: Mapped[Optional[str]] = mapped_column("NM_RENDERER", String(100), nullable=True)
+    image_format: Mapped[Optional[str]] = mapped_column("CD_IMAGE_FORMAT", String(50), nullable=True)
+    degree_of_separation: Mapped[Optional[int]] = mapped_column("NR_DEGREE_OF_SEPARATION", Integer, nullable=True)
+    graphviz_path: Mapped[Optional[str]] = mapped_column("DS_GRAPHVIZ_PATH", String(1000), nullable=True)
+    connection_properties: Mapped[Optional[str]] = mapped_column("DS_CONNECTION_PROPERTIES", String(1000), nullable=True)
+    language: Mapped[Optional[str]] = mapped_column("CD_LANGUAGE", String(50), nullable=True)
+    verbose: Mapped[bool] = mapped_column("FL_VERBOSE", Boolean, default=False)
+    quiet: Mapped[bool] = mapped_column("FL_QUIET", Boolean, default=False)
+    post_processing: Mapped[Optional[str]] = mapped_column("DS_POST_PROCESSING", String(1000), nullable=True)
+    prompt_password: Mapped[bool] = mapped_column("FL_PROMPT_PASSWORD", Boolean, default=False)
