@@ -24,7 +24,7 @@ A nova arquitetura foi construída utilizando princípios modernos de engenharia
 
 > **Importante**
 >
-> O SchemaSpyGUI **não substitui o SchemaSpy** e agrega valor para quem está estudando arquitetura de dados, emgenharia de software, modelagem. O principal intuito deste projeto é melhoara as minhas habilidades de desenvolvimento em Python e construçlão de PROMPTs/Agentes de IA.
+> O SchemaSpyGUI **não substitui o SchemaSpy** e agrega valor para quem está estudando arquitetura de dados, engenharia de software, modelagem. O principal intuito deste projeto é pôr em prática e melhorar as minhas habilidades de desenvolvimento em Python/Java/C# e construção de PROMPTs/Agentes de IA.
 >
 > Ele funciona como uma interface gráfica responsável por organizar, configurar e executar o SchemaSpy de forma simplificada.
 
