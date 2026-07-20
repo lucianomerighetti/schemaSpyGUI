@@ -8,6 +8,10 @@
 ![SQLite](https://img.shields.io/badge/SQLite-Database-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
+> **OBSERVACAO**:
+Esta refatoração foi desenvolvida utilizando a IDE Antigravity (https://antigravity.google/)
+Em algumas partes, com grandes complexidades, utilizei PROMPTs/Agentes/Copilotos aplicados no Google Gemini (https://gemini.google.com/app?hl=pt-BR)
+> 
 ---
 
 # 📖 Sobre o Projeto
