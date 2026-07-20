@@ -8,10 +8,10 @@
 ![SQLite](https://img.shields.io/badge/SQLite-Database-lightgrey)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-> **OBSERVACAO**:
+> **OBSERVAÇÃO**
 Esta refatoração foi desenvolvida utilizando a IDE Antigravity (https://antigravity.google/)
 Em algumas partes, com grandes complexidades, utilizei PROMPTs/Agentes/Copilotos aplicados no Google Gemini (https://gemini.google.com/app?hl=pt-BR)
-> 
+
 ---
 
 # 📖 Sobre o Projeto
@@ -24,7 +24,7 @@ A nova arquitetura foi construída utilizando princípios modernos de engenharia
 
 > **Importante**
 >
-> O SchemaSpyGUI **não substitui o SchemaSpy**.
+> O SchemaSpyGUI **não substitui o SchemaSpy** e agrega valor para quem está estudando arquitetura de dados, emgenharia de software, modelagem. O principal intuito deste projeto é melhoara as minhas habilidades de desenvolvimento em Python e construçlão de PROMPTs/Agentes de IA.
 >
 > Ele funciona como uma interface gráfica responsável por organizar, configurar e executar o SchemaSpy de forma simplificada.
 
