@@ -97,10 +97,28 @@ def run_migrations():
             if cursor.fetchone():
                 cursor.execute("PRAGMA table_info(ta_parametro)")
                 columns = [col[1].lower() for col in cursor.fetchall()]
-                if "nm_campo_configuracao" not in columns:
-                    cursor.execute("ALTER TABLE ta_parametro ADD COLUMN NM_CAMPO_CONFIGURACAO VARCHAR(100)")
+                
+                # 1. Renomear NM_CAMPO_CONFIGURACAO para NM_CAMPO
+                if "nm_campo_configuracao" in columns and "nm_campo" not in columns:
+                    cursor.execute("ALTER TABLE ta_parametro RENAME COLUMN NM_CAMPO_CONFIGURACAO TO NM_CAMPO")
                     conn.commit()
-                    print("Migração: Coluna NM_CAMPO_CONFIGURACAO adicionada em ta_parametro.")
+                    print("Migração: Coluna NM_CAMPO_CONFIGURACAO renomeada para NM_CAMPO em ta_parametro.")
+                
+                # Recarregar as colunas após o rename
+                cursor.execute("PRAGMA table_info(ta_parametro)")
+                columns = [col[1].lower() for col in cursor.fetchall()]
+                
+                # 2. Inserir NM_TABELA se não existir
+                if "nm_tabela" not in columns:
+                    cursor.execute("ALTER TABLE ta_parametro ADD COLUMN NM_TABELA VARCHAR(100)")
+                    conn.commit()
+                    print("Migração: Coluna NM_TABELA adicionada em ta_parametro.")
+                
+                # 3. Criar NM_CAMPO se não existia nenhuma das duas
+                if "nm_campo" not in columns and "nm_campo_configuracao" not in columns:
+                    cursor.execute("ALTER TABLE ta_parametro ADD COLUMN NM_CAMPO VARCHAR(100)")
+                    conn.commit()
+                    print("Migração: Coluna NM_CAMPO adicionada em ta_parametro.")
                 
             conn.close()
     except Exception as e:
@@ -116,14 +134,14 @@ def seed_parameters():
     session = SessionLocal()
     try:
         parameters = [
-            ("-t", "Database type (e.g. pgsql, mysql, ora, etc.)", None),
+            ("-t", "Database type (e.g. pgsql, mysql, ora, etc.)", "TP_DATABASE"),
             ("-dp", "Path to the JDBC driver jar", "DS_DRIVER_PATH"),
-            ("-db", "Name of the database", None),
-            ("-host", "Host name or IP address of the database server", None),
-            ("-port", "Port number of the database server", None),
+            ("-db", "Name of the database", "NM_DATABASE"),
+            ("-host", "Host name or IP address of the database server", "NM_HOST"),
+            ("-port", "Port number of the database server", "NU_PORTA"),
             ("-s", "Schema name to explore", "DS_SCHEMA_EXPLORE"),
-            ("-u", "Database username", None),
-            ("-p", "Database password", None),
+            ("-u", "Database username", "NM_USUARIO"),
+            ("-p", "Database password", "TX_PASSWORD"),
             ("-o", "Output directory", "DS_OUTPUT_DIR"),
             ("-meta", "Path to XML metadata file", "DS_META_FILE_PATH"),
             ("-desc", "Description to be displayed on summary page", "DE_DESCRIPTION"),
@@ -158,11 +176,17 @@ def seed_parameters():
         ]
         
         for name, desc, col_name in parameters:
+            # Determinar a qual tabela o campo pertence
+            tab_name = "tb_configuracao"
+            if col_name in ["TP_DATABASE", "NM_DATABASE", "NM_HOST", "NU_PORTA", "NM_USUARIO", "TX_PASSWORD"]:
+                tab_name = "tb_conexao"
+                
             param = session.query(Parameter).filter(Parameter.nm_parametro == name).first()
             if param:
-                param.nm_campo_configuracao = col_name
+                param.nm_tabela = tab_name
+                param.nm_campo = col_name
             else:
-                param = Parameter(nm_parametro=name, ds_parametro=desc, nm_campo_configuracao=col_name)
+                param = Parameter(nm_parametro=name, ds_parametro=desc, nm_tabela=tab_name, nm_campo=col_name)
                 session.add(param)
             
         session.commit()

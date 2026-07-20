@@ -32,8 +32,14 @@ class Parameter(Base):
         nullable=False
     )
 
-    nm_campo_configuracao: Mapped[Optional[str]] = mapped_column(
-        "NM_CAMPO_CONFIGURACAO",
+    nm_tabela: Mapped[Optional[str]] = mapped_column(
+        "NM_TABELA",
+        String(100),
+        nullable=True
+    )
+
+    nm_campo: Mapped[Optional[str]] = mapped_column(
+        "NM_CAMPO",
         String(100),
         nullable=True
     )
