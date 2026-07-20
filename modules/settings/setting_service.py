@@ -54,7 +54,8 @@ class SettingService(BaseService):
             verbose=dto.verbose,
             quiet=dto.quiet,
             post_processing=dto.post_processing,
-            prompt_password=dto.prompt_password
+            prompt_password=dto.prompt_password,
+            vizjs=dto.vizjs
         )
         return self.repository.create(setting)
 
@@ -105,6 +106,7 @@ class SettingService(BaseService):
         setting.quiet = dto.quiet
         setting.post_processing = dto.post_processing
         setting.prompt_password = dto.prompt_password
+        setting.vizjs = dto.vizjs
  
         self.repository.update()
 

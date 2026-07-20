@@ -114,7 +114,8 @@ def test_new_schemaspy_parameters(db_session):
         verbose=True,
         quiet=False,
         post_processing="cleanup.sh",
-        prompt_password=True
+        prompt_password=True,
+        vizjs=True
     )
     
     created = service.create_setting(dto)
@@ -130,6 +131,7 @@ def test_new_schemaspy_parameters(db_session):
     assert created.quiet is False
     assert created.post_processing == "cleanup.sh"
     assert created.prompt_password is True
+    assert created.vizjs is True
 
     # Update
     dto_update = SettingDTO(
@@ -146,7 +148,8 @@ def test_new_schemaspy_parameters(db_session):
         verbose=False,
         quiet=True,
         post_processing="done.sh",
-        prompt_password=False
+        prompt_password=False,
+        vizjs=False
     )
     service.update_setting(dto_update)
     
@@ -163,4 +166,5 @@ def test_new_schemaspy_parameters(db_session):
     assert fetched.quiet is True
     assert fetched.post_processing == "done.sh"
     assert fetched.prompt_password is False
+    assert fetched.vizjs is False
 

@@ -56,6 +56,7 @@ class SettingDTO:
     quiet: bool = False
     post_processing: str = ""
     prompt_password: bool = False
+    vizjs: bool = False
 
     @property
     def is_new(self) -> bool:

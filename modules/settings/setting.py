@@ -81,3 +81,4 @@ class Setting(Base):
     quiet: Mapped[bool] = mapped_column("FL_QUIET", Boolean, default=False)
     post_processing: Mapped[Optional[str]] = mapped_column("DS_POST_PROCESSING", String(1000), nullable=True)
     prompt_password: Mapped[bool] = mapped_column("FL_PROMPT_PASSWORD", Boolean, default=False)
+    vizjs: Mapped[bool] = mapped_column("FL_VIZJS", Boolean, default=False)

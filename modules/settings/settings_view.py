@@ -113,9 +113,11 @@ class SettingView(BaseView):
         self.chk_a_html = QCheckBox("aHTML")
         self.chk_no_rows = QCheckBox("noRows")
         self.chk_rails = QCheckBox("rails")
+        self.chk_vizjs = QCheckBox("vizjs (-vizjs)")
         col1.addWidget(self.chk_a_html)
         col1.addWidget(self.chk_no_rows)
         col1.addWidget(self.chk_rails)
+        col1.addWidget(self.chk_vizjs)
         
         col2 = QVBoxLayout()
         self.chk_no_html = QCheckBox("noHTML")
@@ -380,6 +382,7 @@ class SettingView(BaseView):
         self.chk_quiet.setChecked(False)
         self.txt_post_processing.clear()
         self.chk_prompt_password.setChecked(False)
+        self.chk_vizjs.setChecked(False)
         
         self.tabs.setCurrentIndex(1)
 
@@ -447,7 +450,8 @@ class SettingView(BaseView):
             verbose=self.chk_verbose.isChecked(),
             quiet=self.chk_quiet.isChecked(),
             post_processing=self.txt_post_processing.text(),
-            prompt_password=self.chk_prompt_password.isChecked()
+            prompt_password=self.chk_prompt_password.isChecked(),
+            vizjs=self.chk_vizjs.isChecked()
         )
 
     def load_setting(self, s):
@@ -502,6 +506,7 @@ class SettingView(BaseView):
         self.chk_quiet.setChecked(s.quiet or False)
         self.txt_post_processing.setText(s.post_processing or "")
         self.chk_prompt_password.setChecked(s.prompt_password or False)
+        self.chk_vizjs.setChecked(s.vizjs or False)
         
         self.tabs.setCurrentIndex(1)
 

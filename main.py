@@ -82,7 +82,8 @@ def run_migrations():
                     ("FL_VERBOSE", "ALTER TABLE tb_configuracao ADD COLUMN FL_VERBOSE BOOLEAN DEFAULT 0"),
                     ("FL_QUIET", "ALTER TABLE tb_configuracao ADD COLUMN FL_QUIET BOOLEAN DEFAULT 0"),
                     ("DS_POST_PROCESSING", "ALTER TABLE tb_configuracao ADD COLUMN DS_POST_PROCESSING VARCHAR(1000)"),
-                    ("FL_PROMPT_PASSWORD", "ALTER TABLE tb_configuracao ADD COLUMN FL_PROMPT_PASSWORD BOOLEAN DEFAULT 0")
+                    ("FL_PROMPT_PASSWORD", "ALTER TABLE tb_configuracao ADD COLUMN FL_PROMPT_PASSWORD BOOLEAN DEFAULT 0"),
+                    ("FL_VIZJS", "ALTER TABLE tb_configuracao ADD COLUMN FL_VIZJS BOOLEAN DEFAULT 0")
                 ]
                 
                 for col_name, sql in migrations:
@@ -133,7 +134,7 @@ def seed_parameters():
             ("-font", "Font name for generated HTML", "NM_FONT"),
             ("-fontsize", "Font size for generated HTML", "NR_FONT_SIZE"),
             ("-css", "Path to custom CSS file", "DS_CSS_PATH"),
-            ("-vizjs", "Use embedded Viz.js instead of Graphviz", None),
+            ("-vizjs", "Use embedded Viz.js instead of Graphviz", "FL_VIZJS"),
             ("-degree", "Limits degree of separation in diagrams (1 or 2)", "NR_DEGREE_OF_SEPARATION"),
             ("-noRows", "Don't query or display row counts", "FL_NO_ROWS"),
             ("-rails", "Specifies if it is a Ruby on Rails database", "FL_RAILS"),
