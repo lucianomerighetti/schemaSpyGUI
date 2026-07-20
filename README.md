@@ -10,6 +10,7 @@
 
 > **OBSERVAÇÃO**
 > Esta refatoração foi desenvolvida utilizando a IDE Antigravity (https://antigravity.google/).
+> 
 > Em algumas partes, apenas aquelas com grandes complexidades, utilizei PROMPTs/Agentes/Copilotos aplicados no Google Gemini (https://gemini.google.com/app?hl=pt-BR). Esses agentes não foram arquivados, foram descartados ao final de cada etapa desenvolvida e COMMIT realizado no GIT.
 
 ---
