@@ -1,4 +1,5 @@
 # parameter.py
+from typing import Optional
 from sqlalchemy import (
     Integer,
     String
@@ -29,4 +30,10 @@ class Parameter(Base):
         "DS_PARAMETRO",
         String(500),
         nullable=False
+    )
+
+    nm_campo_configuracao: Mapped[Optional[str]] = mapped_column(
+        "NM_CAMPO_CONFIGURACAO",
+        String(100),
+        nullable=True
     )

@@ -63,6 +63,16 @@ def run_migrations():
                 # Criar índice único em nm_projeto de tb_projeto
                 cursor.execute("CREATE UNIQUE INDEX IF NOT EXISTS uq_nm_projeto ON tb_projeto(nm_projeto)")
                 conn.commit()
+
+            # --- Migrações de ta_parametro ---
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='ta_parametro'")
+            if cursor.fetchone():
+                cursor.execute("PRAGMA table_info(ta_parametro)")
+                columns = [col[1].lower() for col in cursor.fetchall()]
+                if "nm_campo_configuracao" not in columns:
+                    cursor.execute("ALTER TABLE ta_parametro ADD COLUMN NM_CAMPO_CONFIGURACAO VARCHAR(100)")
+                    conn.commit()
+                    print("Migração: Coluna NM_CAMPO_CONFIGURACAO adicionada em ta_parametro.")
                 
             conn.close()
     except Exception as e:
@@ -77,43 +87,44 @@ def seed_parameters():
     
     session = SessionLocal()
     try:
-        if session.query(Parameter).count() > 0:
-            return
-            
         parameters = [
-            ("-t", "Database type (e.g. pgsql, mysql, ora, etc.)"),
-            ("-dp", "Path to the JDBC driver jar"),
-            ("-db", "Name of the database"),
-            ("-host", "Host name or IP address of the database server"),
-            ("-port", "Port number of the database server"),
-            ("-s", "Schema name to explore"),
-            ("-u", "Database username"),
-            ("-p", "Database password"),
-            ("-o", "Output directory"),
-            ("-meta", "Path to XML metadata file"),
-            ("-desc", "Description to be displayed on summary page"),
-            ("-i", "Regular expression of table names to include"),
-            ("-I", "Regular expression of table names to exclude"),
-            ("-x", "Regular expression of column names to exclude"),
-            ("-charset", "Character set used for HTML output"),
-            ("-font", "Font name for generated HTML"),
-            ("-fontsize", "Font size for generated HTML"),
-            ("-css", "Path to custom CSS file"),
-            ("-vizjs", "Use embedded Viz.js instead of Graphviz"),
-            ("-degree", "Limits degree of separation in diagrams (1 or 2)"),
-            ("-noRows", "Don't query or display row counts"),
-            ("-rails", "Specifies if it is a Ruby on Rails database"),
-            ("-aHTML", "Allow HTML in comments"),
-            ("-noHTML", "Don't generate HTML documentation"),
-            ("-noLogo", "Don't include the SchemaSpy logo"),
-            ("-noAds", "Don't display sponsor ads"),
-            ("-dincFK", "Don't query foreign keys"),
-            ("-sso", "Single Sign-On")
+            ("-t", "Database type (e.g. pgsql, mysql, ora, etc.)", None),
+            ("-dp", "Path to the JDBC driver jar", "DS_DRIVER_PATH"),
+            ("-db", "Name of the database", None),
+            ("-host", "Host name or IP address of the database server", None),
+            ("-port", "Port number of the database server", None),
+            ("-s", "Schema name to explore", "DS_SCHEMA_EXPLORE"),
+            ("-u", "Database username", None),
+            ("-p", "Database password", None),
+            ("-o", "Output directory", "DS_OUTPUT_DIR"),
+            ("-meta", "Path to XML metadata file", "DS_META_FILE_PATH"),
+            ("-desc", "Description to be displayed on summary page", "DE_DESCRIPTION"),
+            ("-i", "Regular expression of table names to include", "DS_TABLE_NAME_REGEX"),
+            ("-I", "Regular expression of table names to exclude", "DS_TABLE_EXCLUSION_REGEX"),
+            ("-x", "Regular expression of column names to exclude", "DS_COLUMN_EXCLUSION_REGEX"),
+            ("-charset", "Character set used for HTML output", "CD_CHARSET"),
+            ("-font", "Font name for generated HTML", "NM_FONT"),
+            ("-fontsize", "Font size for generated HTML", "NR_FONT_SIZE"),
+            ("-css", "Path to custom CSS file", "DS_CSS_PATH"),
+            ("-vizjs", "Use embedded Viz.js instead of Graphviz", None),
+            ("-degree", "Limits degree of separation in diagrams (1 or 2)", None),
+            ("-noRows", "Don't query or display row counts", "FL_NO_ROWS"),
+            ("-rails", "Specifies if it is a Ruby on Rails database", "FL_RAILS"),
+            ("-aHTML", "Allow HTML in comments", "FL_A_HTML"),
+            ("-noHTML", "Don't generate HTML documentation", "FL_NO_HTML"),
+            ("-noLogo", "Don't include the SchemaSpy logo", "FL_NO_LOGO"),
+            ("-noAds", "Don't display sponsor ads", "FL_NO_ADS"),
+            ("-dincFK", "Don't query foreign keys", "FL_DINC_FK"),
+            ("-sso", "Single Sign-On", "FL_SINGLE_SIGN_ON")
         ]
         
-        for name, desc in parameters:
-            param = Parameter(nm_parametro=name, ds_parametro=desc)
-            session.add(param)
+        for name, desc, col_name in parameters:
+            param = session.query(Parameter).filter(Parameter.nm_parametro == name).first()
+            if param:
+                param.nm_campo_configuracao = col_name
+            else:
+                param = Parameter(nm_parametro=name, ds_parametro=desc, nm_campo_configuracao=col_name)
+                session.add(param)
             
         session.commit()
         print("Migração: Tabela de apoio ta_parametro populada com sucesso.")
